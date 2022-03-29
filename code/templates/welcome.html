@@ -1,0 +1,14 @@
+<!doctype html>
+<title>Welcome to server</title>
+{% if method %}
+    <h1>got it! method: {{ method }} </h1>
+{% else %}
+    <h1>got it!</h1>
+{% endif %}
+{% if data %}
+    {% if method == "POST" %}
+        <p>{{ data }}</p>
+    {% else %}
+        <p>no data</p>
+    {% endif %}
+{% endif %}
