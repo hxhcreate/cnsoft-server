@@ -5,3 +5,5 @@ itsdangerous @ file:///home/conda/feedstock_root/build_artifacts/itsdangerous_16
 Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/jinja2_1648299710939/work
 MarkupSafe @ file:///D:/bld/markupsafe_1647364651083/work
 Werkzeug @ file:///home/conda/feedstock_root/build_artifacts/werkzeug_1644332431572/work
+
+flask~=2.0.3
