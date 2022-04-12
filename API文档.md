@@ -6,12 +6,15 @@ code说明：
 > 4001 数据库操作出错
 > 
 > 4002 数据库连接出错
-> 
+
+地址
+> http:127.0.0.1:5000/
 
 ###用户
 - 注册
 ```
 请求：POST
+url: /register
 请求头：Aplication/json
 body: {
     "username": "",
@@ -30,6 +33,7 @@ body: {
 - 登录
 ```
 请求：POST
+url: /login
 请求头：Aplication/json
 body: {
     "username": "",
