@@ -28,6 +28,25 @@ body: {
 }
 ```
 - 登录
+```
+请求：POST
+请求头：Aplication/json
+body: {
+    "username": "",
+    "password": ""
+}
+正确结果： { 
+    data:
+    msg: “”,
+    status: 200
+}
+错误结果： {
+    msg: "",
+    status: 
+}
+```
+
+- 
 
 ###管理员
 
