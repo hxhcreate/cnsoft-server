@@ -2,5 +2,5 @@
 
 ### 安装环境
 ```bash
-pip install requirements.txt
+pip install -r requirement.txt
 ```
