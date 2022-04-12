@@ -19,8 +19,8 @@ def create_app(config_name):
     Session(app)  # 将app中的session数据全部读出来
 
     """注册蓝图"""
-    from admin import admin
-    from user import user
-    app.register_blueprint(user, url_prefix="/user")
-    app.register_blueprint(admin, url_prefix='/admin')
+    from . import admin
+    from . import user
+    app.register_blueprint(user.user, url_prefix="/user")
+    app.register_blueprint(admin.admin, url_prefix='/admin')
     return app

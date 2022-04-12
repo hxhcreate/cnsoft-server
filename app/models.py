@@ -5,6 +5,8 @@ from app import db
 class User(db.Model):
     __tableName__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), nullable=False, unique=True)
+    password = db.Column(db.String(64), nullable=False)
     gender = db.Column(db.Enum("male", "female"))
     age = db.Column(db.Integer)
     address = db.Column(db.String(64))
