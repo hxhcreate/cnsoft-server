@@ -4,6 +4,8 @@
 
 > 200 成功
 >
+> 400 请求（的操作）无效
+>
 > 403 账号或密码验证失败
 >
 > 4000 数据不正确或不合理
@@ -19,6 +21,8 @@
 ### 格式说明
 
 在任何情况下，服务器返回的`body`中的JSON数据必须是一个对象，用`code`返回业务状态，用`data`返回客户端要请求的实际数据，用`message`返回业务失败后的提示信息；其中`code`值为200时表示业务成功，`code`值为其它时表示业务失败；其中`data`可以是`Entity（对象）`，也可以是`List<Entity>（数组）`。
+
+{{  变量名 }}表示该位置是变量。
 
 服务端返回的数据的结构应该是：
 
@@ -78,7 +82,7 @@
               "url": "https://github.com/yanzhenjie/Kalle",
           },
       ],
-      "message": "Succeed."
+      "message": "Succeed"
   }
   ```
 
@@ -94,6 +98,8 @@
 
 ## 安卓客户端
 
+<u>统一在"/user/"子路径下</u>
+
 ### 会话管理
 
 - 注册
@@ -103,17 +109,19 @@
   url: /register
   Content-Type：Aplication/json
   body: {
-      "username": "",
-      "password": ""
+      "username": "{{ username }}",
+      "password": "{{ password }}"
   }
-  正确结果： { 
-      data:
-      msg: "",
-      status: 200
+  正确响应： {
+  	code: 200,
+      data: null,
+      message: "Succeed"
   }
-  错误结果： {
-      msg: "",
-      status: 
+  
+  错误响应： {
+      code: 403,
+      data: null,
+      message: "用户名或密码不合法"
   }
   ```
 
@@ -124,17 +132,21 @@
   url: /login
   Content-Type：Aplication/json
   body: {
-      "username": "",
-      "password": ""
+      "username": "{{ username }}",
+      "password": "{{ password }}"
   }
-  正确结果： { 
-      data:
-      msg: "",
-      status: 200
+  正确响应： { 
+      code: 200,
+      data: {
+      	"username": "{{ username }}",
+      	"token": "{{ token }}"
+      },
+      message: "Succeed"
   }
-  错误结果： {
-      msg: "",
-      status: 
+  错误响应： {
+      code: 403,
+      data: null,
+      message: "用户名或密码错误"
   }
   ```
 
@@ -145,7 +157,16 @@
   请求：GET
   url：/logout
   参数：[]
-  响应：{"success"}
+  正确响应：{
+  	code: 200,
+      data: null,
+      message: "Succeed"
+  }
+  错误响应：{
+  	code: 400,
+      data: null,
+      message: "用户尚未登录"
+  }
   ```
 
 ### 新闻获取
