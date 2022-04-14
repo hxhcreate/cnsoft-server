@@ -41,7 +41,7 @@ def user_login():
     if user and user.password == password:
         timeStamp = int(time.time())
         session["user" + username] = str(timeStamp)  # 用来和管理员表的username做区分
-        userInfo = {'username': user.username, 'password': user.password,
+        userInfo = {'username': user.username, 'password': user.password, # password也要返回吗？
                     'logtime': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
         return jsonify(msg='登录成功', code=200, data=userInfo)
     else:
