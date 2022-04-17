@@ -1,5 +1,6 @@
 from app import create_app
 from app import db
+from config import SERVER_PORT
 
 app = create_app("develop")  # 生产环境
 # app = create_app("product")  线上环境
@@ -13,7 +14,7 @@ manager.add_command("db", MigrateCommand)  # 绑定额外的命令
 
 
 """
-python manage.py runserver
+python manage.py runserver -p 5001
 
 python manage.py db init  第一次运行即可
 python manage.py db migrate -m "message" 提交变更到本地
