@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from flask import request, jsonify, session
+from flask import request, jsonify, session, url_for, render_template
 
 from . import admin
 from ..models import Admin, db
@@ -12,12 +12,21 @@ from ..models import Admin, db
 
 """管理员接口"""
 
+@admin.route("/", methods=['GET'])
+def admin_index():
+    return open("dist/index.html").read()
+
+@admin.route("/static/<path:static_file>", methods=['GET'])
+def admin_static(static_file):
+    return open("dist/static/" + static_file, 'rb').read()
 
 @admin.route("/register", methods=['POST'])
 def admin_register():
     try:
-        username = request.json.get("username", "").strip()
-        password = request.json.get("password", "").strip()
+        # dataJson = request.form.to_dict()
+        dataJson = request.json
+        username = dataJson.get("username", "").strip()
+        password = dataJson.get("password", "").strip()
         if not all([username, password]):
             return jsonify(msg='管理员和密码不能为空', code=4000)
         admin = Admin(username=username, password=password)
@@ -36,8 +45,10 @@ def admin_register():
 
 @admin.route("/login", methods=['POST'])
 def admin_login():
-    username = request.json.get("username", "").strip()
-    password = request.json.get("password", "").strip()
+    # dataJson = request.form.to_dict()
+    dataJson = request.json
+    username = dataJson.get("username", "").strip()
+    password = dataJson.get("password", "").strip()
     if not all([username, password]):
         return jsonify(msg='管理员名和密码不能为空', code=4000)
     admin = Admin.query.filter_by(username=username).first()

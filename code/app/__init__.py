@@ -14,6 +14,7 @@ def create_app(config_name):
     config_class = config_map.get(config_name)
     app.config.from_object(config_class)  # 从一个类中直接获取配置参数
 
+    # app.secret_key = config_class.SECRET_KEY
     db.init_app(app)  # 实例化数据库
 
     Session(app)  # 将app中的session数据全部读出来
@@ -22,5 +23,5 @@ def create_app(config_name):
     from . import admin
     from . import user
     app.register_blueprint(user.user, url_prefix="/user")
-    app.register_blueprint(admin.admin, url_prefix='/admin')
+    app.register_blueprint(admin.admin, url_prefix='/auth')
     return app

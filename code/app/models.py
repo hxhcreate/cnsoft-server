@@ -45,14 +45,14 @@ class News(db.Model):
 
 
 # really need it?
-# class UserLog(db.Model):  # 单次登录的所有浏览记录
-#     __tableName__ = 'user_log'
-#     id = db.Column(db.Integer, primary_key=True)
-#     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-#     start_date = db.Column(db.DATE, nullable=False)
-#     start_addr = db.Column(db.String(64))
-#     stay_time = db.Column(db.Integer, default=0)
-#     clicks = db.Column(db.Integer, default=0)
+class UserLog(db.Model):  # 单次登录的所有浏览记录
+    __tableName__ = 'user_log'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    start_date = db.Column(db.DATE, nullable=False)
+    start_addr = db.Column(db.String(64))
+    stay_time = db.Column(db.Integer, default=0)
+    clicks = db.Column(db.Integer, default=0)
 
 
 class User2News(db.Model):  # 单次单条浏览记录
