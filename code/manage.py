@@ -1,6 +1,5 @@
 from app import create_app
 from app import db
-from config import SERVER_PORT
 
 app = create_app("develop")  # 生产环境
 # app = create_app("product")  线上环境
