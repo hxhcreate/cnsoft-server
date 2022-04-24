@@ -29,7 +29,7 @@
 ```json
 {
     "code": 200,
-    "data": ?,
+    "data": "I am data",
     "message": "I am message."
 }
 ```
