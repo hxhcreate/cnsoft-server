@@ -7,6 +7,8 @@ from flask import request, jsonify, session
 
 from . import user
 from ..models import User, db, WeUserToken, WeUserInfo
+from ..tools.decoration import login_required
+from ..config.redis import redis_db
 
 from ..config import app_id, secret
 
@@ -43,7 +45,7 @@ def user_login():
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
         timeStamp = int(time.time())
-        session["user" + user.id] = str(timeStamp)  # 用来和管理员表的username做区分
+        redis_db.handle_redis_token("user"+str(user.id), timeStamp)  # 用来和管理员表的username做区分
         userInfo = {'username': user.username,
                     "id": user.id,
                     "session": str(timeStamp),
@@ -55,8 +57,9 @@ def user_login():
 
 @user.route("/logout/<int:id>", methods=['DELETE'])
 def user_logout(id):
-    if session.get("user" + id):
-        session.pop("user" + id)
+    key = "user" + str(id)
+    if redis_db.exists_key(key):
+        redis_db.del_key(key)
         return jsonify(msg="用户退出登录成功", code=200)
     else:
         return jsonify(msg='用户尚未登录', code=4000)
@@ -65,7 +68,7 @@ def user_logout(id):
 # 检查登录状态
 @user.route("/session/<int:id>", methods=['GET'])
 def user_check_session(id):
-    if session.get('user' + id) is not None:
+    if redis_db.exists_key("user" + str(id)):
         return jsonify(id=id, code=200)
     else:
         return jsonify(msg="用户尚未登录", code=4000)
@@ -119,6 +122,7 @@ def user_get_stats_info():
 
 
 # 基本信息修改
+
 @user.route("/update/info/", methods=['GET'])
 def user_info_update():
     id = request.args.get("id", "").strip()
@@ -216,3 +220,6 @@ def user_wechat_api():
             return jsonify(mgs="数据库操作有错", code=4001)
     else:
         return jsonify(msg="未收到code", code=4000)
+
+
+"""新闻相关API"""
