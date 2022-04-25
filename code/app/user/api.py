@@ -45,7 +45,7 @@ def user_login():
     user = User.query.filter_by(username=username).first()
     if user and user.password == password:
         timeStamp = int(time.time())
-        redis_db.handle_redis_token("user"+str(user.id), timeStamp)  # 用来和管理员表的username做区分
+        redis_db.handle_redis_token("user" + str(user.id), timeStamp)  # 用来和管理员表的username做区分
         userInfo = {'username': user.username,
                     "id": user.id,
                     "session": str(timeStamp),
@@ -124,6 +124,7 @@ def user_get_stats_info():
 # 基本信息修改
 
 @user.route("/update/info/", methods=['GET'])
+@login_required()
 def user_info_update():
     id = request.args.get("id", "").strip()
     sign = request.args.get("sign", "").strip()
@@ -135,68 +136,60 @@ def user_info_update():
     city = request.args.get("city", "").strip()
     job = request.args.get("job", "").strip()
     user = User.query.filter_by(id=id).first()
-    if sess == session.get("user" + username):
-        if user is not None:
-            try:
-                user.nickname = nickname
-                user.gender = gender
-                user.age = age
-                user.city = city
-                user.job = job
-                db.session.add(user)
-                db.session.commit()
-                return jsonify(msg="修改基本成功", code=200)
-            except Exception as e:
-                print(e)
-                return jsonify(msg="数据库操作有错", code=403)
-        else:
-            return jsonify(msg="未查找到该用户，无法修改", code=403)
+    if user is not None:
+        try:
+            user.nickname = nickname
+            user.gender = gender
+            user.age = age
+            user.city = city
+            user.job = job
+            db.session.add(user)
+            db.session.commit()
+            return jsonify(msg="修改基本成功", code=200)
+        except Exception as e:
+            print(e)
+            return jsonify(msg="数据库操作有错", code=403)
     else:
-        return jsonify(msg="error用户未登录", code=403)
+        return jsonify(msg="未查找到该用户，无法修改", code=403)
 
 
 # 改头像
 @user.route("/update/avatar/", methods=['GET'])
+@login_required()
 def user_avatar_update():
     new_avatar_url = request.args.get("avatar", "").strip()
     id = request.args.get("id", "").strip()
     sign = request.args.get("sign", "").strip()
-    sess = request.args.get("session", "").strip()
-    if sess == session.get("user" + id):
-        try:
-            user_num = User.query.filter_by(id=id).first().update({"avatar": new_avatar_url})
-            db.session.commit()
-            return jsonify(msg="修改用户头像成功", code=200, data={"id": user.id})
-        except Exception as e:
-            print(e)
-            return jsonify(msg="数据库操作有错", code=4001)
-    else:
-        return jsonify(msg="有错", code=4001)
+    try:
+        user_num = User.query.filter_by(id=id).first().update({"avatar": new_avatar_url})
+        db.session.commit()
+        return jsonify(msg="修改用户头像成功", code=200, data={"id": user.id})
+    except Exception as e:
+        print(e)
+        return jsonify(msg="数据库操作有错", code=4001)
 
 
 # 修改密码
 @user.route("/update/pwd/", methods=['POST'])
+@login_required()
 def user_pwd_update():
     id = request.json.get("id", "").strip()
     old_pwd = request.json.get('oldpwd', "").strip()
     new_pwd = request.json.get('newpad', "").strip()
-    sess = request.args.get("session", "").strip()
     sign = request.args.get("sign", "").strip()
-    if sess == session.get("user" + id):
-        try:
-            user = User.query.filter_by(id=id).first()
-            if old_pwd == user.password:
-                user.password = new_pwd
-                db.session.add(user)
-                db.session.commit()
-                return jsonify(msg='成功', code=200, data={"id": user.id})
-            else:
-                return jsonify(msg='密码错误', code=403)
-        except Exception as e:
-            print(e)
-            return jsonify(msg='错误', code=403)
-    else:
+    try:
+        user = User.query.filter_by(id=id).first()
+        if old_pwd == user.password:
+            user.password = new_pwd
+            db.session.add(user)
+            db.session.commit()
+            return jsonify(msg='成功', code=200, data={"id": user.id})
+        else:
+            return jsonify(msg='密码错误', code=403)
+    except Exception as e:
+        print(e)
         return jsonify(msg='错误', code=403)
+
 
 
 # 接入微信  暂时不使用

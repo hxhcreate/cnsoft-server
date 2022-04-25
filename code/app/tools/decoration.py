@@ -1,14 +1,18 @@
 from functools import wraps
-from flask import session, jsonify
+from flask import session, jsonify, request
+
+from ..config.redis import redis_db
 
 
-def login_required(sess, id):
+def login_required():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            if sess != session.get('user' + id):
+            sess = request.cookies.get('session')
+            if sess is None:
                 return jsonify(msg='error', code=403)
             return f(*args, **kwargs)
-        return decorated_function
-    return decorator
 
+        return decorated_function
+
+    return decorator
