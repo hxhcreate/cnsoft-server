@@ -22,6 +22,8 @@ def create_app(config_name):
     """注册蓝图"""
     from . import admin
     from . import user
+    from . import cloudAPI
     app.register_blueprint(user.user, url_prefix="/user")
     app.register_blueprint(admin.admin, url_prefix='/admin')
+    app.register_blueprint(cloudAPI.cloudAPI, url_prefix='/cloudAPI')
     return app

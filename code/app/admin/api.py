@@ -12,6 +12,9 @@ from ..models import Admin, db
 
 """管理员接口"""
 
+@admin.route("/", methods=['GET'])
+def admin_index():
+    return "This is index page."
 
 @admin.route("/register", methods=['POST'])
 def admin_register():
