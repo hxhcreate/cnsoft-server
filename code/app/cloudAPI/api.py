@@ -4,9 +4,7 @@ from datetime import datetime
 from flask import request, jsonify, session
 
 from . import cloudAPI
-
-
-
+import implement
 
 
 """云API接口"""
@@ -26,5 +24,10 @@ def cloudAPI_text2audio():
 
 @cloudAPI.route("/img2text", methods=['POST'])
 def cloudAPI_img2text():
-    return ''
+    imgBase64 = request.json.get("imgBase64", "")
+    text, res = implement.img2text()
+    if res:
+        return jsonify(code=200, msg="success", data={'text': text})
+    else:
+        return jsonify(code=401, msg="img to text error", data={'text': ''})
 
