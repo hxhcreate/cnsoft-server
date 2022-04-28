@@ -9,10 +9,10 @@ def login_required():
         @wraps(f)
         def decorated_function(*args, **kwargs):
             sess = request.cookies.get('session')
+            print(sess)
             if sess is None:
-                return jsonify(msg='error', code=403)
+                return jsonify(msg='用户未登录', code=403)
+            print(123)
             return f(*args, **kwargs)
-
         return decorated_function
-
     return decorator

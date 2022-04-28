@@ -16,7 +16,7 @@ class User(db.Model):
     password = db.Column(db.String(64), nullable=False)
     cate = db.Column(db.Enum("pure", "wechat", "phone"))
     nickname = db.Column(db.String(64))
-    avatar = db.Column(db.String(64))  # 头像图片的url
+    avatar = db.Column(db.String(200))  # 头像图片的url
     gender = db.Column(db.Enum("male", "female"))
     age = db.Column(db.Integer)
     city = db.Column(db.String(32))
@@ -28,7 +28,7 @@ class User(db.Model):
     """统计信息"""
     exp = db.Column(db.Integer, default=0)
     level = db.Column(db.Integer, default=0)
-    reg_time = db.Column(db.DateTime, default=datetime.datetime.now())
+    reg_time = db.Column(db.DateTime, default=datetime.datetime.now)  # 不加括号表示不更新时间
     total_read_time = db.Column(db.BigInteger, default=0)  # 单位毫秒
     total_clicks = db.Column(db.BigInteger, default=0)
 
@@ -36,17 +36,41 @@ class User(db.Model):
     user_news = db.relationship("User2News", backref="user")  # 关联到表User2News的
     # user_log = db.relationship("UserLog", backref='user')  # 关联到表UserLog
 
+    def __dict__(self):
+        return {"id": self.id, 'username': self.username}
+
 
 class News(db.Model):
     __tableName__ = 'news'
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(64))
+    digest = db.Column(db.Text)
+    cate = db.Column(db.String(5), nullable=False)
     address = db.Column(db.String(32))
-    date = db.Column(db.DATE)
-    platform = db.Column(db.String(32))
-    keywords = db.Column(db.String(100))
+    hpic = db.Column(db.String(64))  # 头部图片Url
+    heat = db.Column(db.Float)  # 新闻热度 浮点型
+    date = db.Column(db.DateTime)
+    source = db.Column(db.String(32))
+    keywords = db.Column(db.String(100))  # join by ;
     length = db.Column(db.Integer, default=0)
-    total_clicks_by_user = db.Column(db.BigInteger, default=0)
+    content = db.Column(db.Text, default="")
+    views = db.Column(db.Integer, default=0)
+    loves = db.Column(db.Integer, default=0)
+    comments = db.Column(db.Integer, default=0)
+    stars = db.Column(db.Integer, default=0)
     user_news = db.relationship("User2News", backref='news')  # 关联到表User2News
+
+    def increase_love(self):
+        self.loves += 1
+
+    def increase_view(self):
+        self.views += 1
+
+    def increase_star(self):
+        self.stars += 1
+
+    def increase_comment(self):
+        self.comments += 1
 
 
 # really need it?
@@ -63,13 +87,13 @@ class News(db.Model):
 class User2News(db.Model):  # 单次单条浏览记录
     __tableName__ = 'user_news'
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.DATE, nullable=False, unique=True)
+    start_time = db.Column(db.DateTime, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     news_id = db.Column(db.Integer, db.ForeignKey("news.id"), nullable=False)
     read_time = db.Column(db.Integer, default=0)
     read_process = db.Column(db.String(5), default="0%")
-    is_like = db.Column(db.Boolean)
-    is_favorite = db.Column(db.Boolean)
+    is_like = db.Column(db.Boolean, default=False)
+    is_favorite = db.Column(db.Boolean, default=False)
 
 
 class WeUserToken(db.Model):  # 微信用户登录信息
@@ -91,6 +115,6 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     province = db.Column(db.String(32), default="")
     city = db.Column(db.String(32), default="")
     country = db.Column(db.String(32), default="")
-    head_img_url = db.Column(db.String(100), default="")
+    head_img_url = db.Column(db.String(200), default="")
     privilege = db.Column(db.String(100), default="")
     union_id = db.Column(db.String(64), default="")

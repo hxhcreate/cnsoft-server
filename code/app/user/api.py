@@ -6,7 +6,7 @@ import json
 from flask import request, jsonify, session
 
 from . import user
-from ..models import User, db, WeUserToken, WeUserInfo
+from ..models import User, News, db, WeUserToken, WeUserInfo
 from ..tools.decoration import login_required
 from ..config.redis import redis_db
 
@@ -75,10 +75,10 @@ def user_check_session(id):
 
 
 # 获取用户信息
-@user.route("/get/info", methods=['POST'])
+@user.route("/get/info", methods=['GET'])
 def user_get_info():
-    id = request.json.get("id", "").strip()
-    sign = request.json.get("sign", "").strip()
+    id = request.args.get("id", "").strip()
+    sign = request.args.get("sign", "").strip()
     if id:
         try:
             user = User.query.filter_by(id=id).first()
@@ -99,10 +99,10 @@ def user_get_info():
 
 
 # 获取用户平台信息
-@user.route("/get/info/detail", methods=['POST'])
+@user.route("/get/info/detail", methods=['GET'])
 def user_get_stats_info():
-    id = request.json.get("id", "").strip()
-    sign = request.json.get("sign", "").strip()
+    id = request.args.get("id", "").strip()
+    sign = request.args.get("sign", "").strip()
     if id:
         try:
             user = User.query.filter_by(id=id).first()
@@ -191,7 +191,6 @@ def user_pwd_update():
         return jsonify(msg='错误', code=403)
 
 
-
 # 接入微信  暂时不使用
 @user.route("/wechat", methods=['POST'])
 def user_wechat_api():
@@ -215,4 +214,6 @@ def user_wechat_api():
         return jsonify(msg="未收到code", code=4000)
 
 
-"""新闻相关API"""
+"""暂时只做新闻相关API  不涉及用户方面的问题"""
+
+
