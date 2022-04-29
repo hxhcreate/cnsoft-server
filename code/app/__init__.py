@@ -20,17 +20,9 @@ def create_app(config_name):
     Session(app)  # 将app中的session数据全部读出来
 
     """注册蓝图"""
-<<<<<<< HEAD
     from . import admin, user, news
     app.register_blueprint(user.user, url_prefix="/user")
     app.register_blueprint(admin.admin, url_prefix='/admin')
     app.register_blueprint(news.news, url_prefix='/news')
-=======
-    from . import admin
-    from . import user
-    from . import cloudAPI
-    app.register_blueprint(user.user, url_prefix="/user")
-    app.register_blueprint(admin.admin, url_prefix='/admin')
     app.register_blueprint(cloudAPI.cloudAPI, url_prefix='/cloudAPI')
->>>>>>> cloudAPI
     return app
