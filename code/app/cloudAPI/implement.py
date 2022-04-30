@@ -1,11 +1,10 @@
-from .ecloud import CMSSEcloudOcrClient
 import json
 import base64
 import traceback
 import time
 import requests
 
-from .ecloud.Signature import sign
+from Signature import sign
 
 def log(e):
     traceback.print_stack()
@@ -13,7 +12,7 @@ def log(e):
 
 accesskey = 'e74480e45cd5404aa72d6c536e1f3933'
 secretkey = '25c9f0e30e0d4ba6aa4c6b302985f8cf'
-url = 'https://api-wuxi-1.cmecloud.cn:8443'
+host = 'https://api-wuxi-1.cmecloud.cn:8443'
 
 # 语音转文字
 def audio2text(audioBase64):
@@ -32,6 +31,7 @@ def audio2text(audioBase64):
             text = ''
             for res in results:
                 text += res.get('ansStr', '')
+            # print(response.text)
             return text, True if text else False
     except Exception as e:
         log(e)
@@ -45,7 +45,6 @@ def text2audio(text):
         response = request_text2audio(text)
         if response:
             audioBase64 = response.json().get('body', {}).get('data', '')
-            # play_audio(audioBase64)
             return audioBase64, True if audioBase64 else False
     except Exception as e:
         log(e)
@@ -91,22 +90,27 @@ def play_audio(audioBase64):
         wave_file.setnchannels(1)
         wave_file.writeframes(audio)
 
-def request_img2text(imgBase64):
-    requesturl = '/api/ocr/v1/general'
-    ocr_client = CMSSEcloudOcrClient(accesskey, secretkey, url)
-    response = ocr_client.request_ocr_service_base64(requesturl, imgBase64)
-    return response
-
-def request_text2audio(text):
-    requesturl = '/api/lingxiyun/cloud/tts/v1'
-    querystring = sign('POST', accesskey, secretkey, requesturl)
+def get_fullurl(method, url):
+    querystring = sign(method, accesskey, secretkey, url)
     params = ''
     for(k,v) in querystring.items():
         params += str(k) + '=' + str(v) + '&'
     params = params[:-1]
-    fullurl = url + requesturl + '?' + params
+    fullurl = host + url + '?' + params
     s = requests.session()
     s.keep_alive = False
+    return fullurl
+
+def request_img2text(imgBase64):
+    requesturl = '/api/ocr/v1/general'
+    fullurl = get_fullurl('POST', requesturl)
+    body = {'image': imgBase64}
+    response = requests.post(fullurl, data = json.dumps(body), headers = {"Content-Type":"application/json"}, timeout = (5, 60), verify = False)
+    return response
+
+def request_text2audio(text):
+    requesturl = '/api/lingxiyun/cloud/tts/v1'
+    fullurl = get_fullurl('POST', requesturl)
     body = {
         "text": text,
         "sessionParam": {
@@ -123,22 +127,16 @@ def request_text2audio(text):
 
 def request_audio2text_send(audioBase64, sendId):
     requesturl = '/api/lingxiyun/cloud/iat/send_request/v1'
-    querystring = sign('POST', accesskey, secretkey, requesturl)
-    params = ''
-    for(k,v) in querystring.items():
-        params += str(k) + '=' + str(v) + '&'
-    params = params[:-1]
-    fullurl = url + requesturl + '?' + params
-    s = requests.session()
-    s.keep_alive = False
+    fullurl = get_fullurl('POST', requesturl)
     body = {
         "endFlag": 1,
         "data": audioBase64,
         "sessionParam": {
             "sid": "123456",
             "aue": "raw",
-            "bos": 3000,
-            "eos": 3000,
+            "bos": 1000,
+            "eos": 1000,
+            "rate": 8000,
             "rst": "plain"
         }
     }
@@ -150,14 +148,7 @@ def request_audio2text_send(audioBase64, sendId):
 
 def request_audio2text_recv(sendId):
     requesturl = '/api/lingxiyun/cloud/iat/query_result/v1'
-    querystring = sign('GET', accesskey, secretkey, requesturl)
-    params = ''
-    for(k,v) in querystring.items():
-        params += str(k) + '=' + str(v) + '&'
-    params = params[:-1]
-    fullurl = url + requesturl + '?' + params
-    s = requests.session()
-    s.keep_alive = False
+    fullurl = get_fullurl('GET', requesturl)
     response = requests.get(fullurl,
                             headers = {"Content-Type":"application/json", "streamId": sendId},
                             timeout = (5, 60),
@@ -165,13 +156,16 @@ def request_audio2text_recv(sendId):
     return response
 
 if __name__ == '__main__':
-    # import requests
-    # imageurl = r'https://img2.baidu.com/it/u=2026838953,131045863&fm=253&fmt=auto&app=138&f=PNG?w=500&h=658'
-    # img = requests.get(imageurl).content
-    # imgBase64 = base64.encodebytes(img).decode()
-    # print(img2text(imgBase64))
-    audio, res = text2audio('智能语音交互')
+    import requests
+    imageurl = r'https://img2.baidu.com/it/u=2026838953,131045863&fm=253&fmt=auto&app=138&f=PNG?w=500&h=658'
+    img = requests.get(imageurl).content
+    imgBase64 = base64.encodebytes(img).decode()
+    text, res = img2text(imgBase64)
+    print(text)
+    audioBase64, res = text2audio('北京理工大学')
+    # audioBase64, res = text2audio(text[1:10])
+    play_audio(audioBase64)
     if res:
-        print(audio2text(audio))
+        print(audio2text(audioBase64))
     else:
         print('!')
