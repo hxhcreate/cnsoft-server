@@ -11,13 +11,15 @@ secret = None
 REDIS_HOST = '127.0.0.1'
 REDIS_PORT = 6379
 WECHAT_ACCESS_EXPIRE_TIME = 10000000
-SESSION_EXPIRE_TIME = 1000
+SESSION_EXPIRE_TIME = 10000
 DEV_DB = 1
 PRO_DB = 2
 
-# import redis
-# redis_store = redis.Redis(host='127.0.0.1', port=6379)  # 操作的redis配置
+import redis
 
+
+# redis_store = redis.Redis(host='127.0.0.1', port=6379)  # 操作的redis配置
+#
 
 # 基础环境
 class Config:
@@ -33,7 +35,7 @@ class Config:
 class DevelopmentConfig(Config):
     """开发模式的配置信息"""
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@127.0.0.1:3306/2022soft'
-    # SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379)
+    SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=DEV_DB)
     DEBUG = True
 
 
@@ -41,7 +43,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """生产环境配置信息"""
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/2022soft'
-    # SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379)
+    SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=PRO_DB)
 
 
 config_map = {
