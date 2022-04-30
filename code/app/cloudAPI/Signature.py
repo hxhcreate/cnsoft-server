@@ -5,6 +5,11 @@ import hmac
 import urllib.parse
 from hashlib import sha1
 from hashlib import sha256
+import requests
+
+accesskey = 'e74480e45cd5404aa72d6c536e1f3933'
+secretkey = '25c9f0e30e0d4ba6aa4c6b302985f8cf'
+host = 'https://api-wuxi-1.cmecloud.cn:8443'
 
 def percent_encode(encode_str):
     encode_str = str(encode_str)
@@ -34,3 +39,15 @@ def sign(http_method, access_key, secret_key, servlet_path):
     signature = hmac.new(key, string_to_sign,sha1).hexdigest()
     querystring['Signature'] = signature
     return querystring
+
+
+def get_fullurl(method, url):
+    querystring = sign(method, accesskey, secretkey, url)
+    params = ''
+    for(k,v) in querystring.items():
+        params += str(k) + '=' + str(v) + '&'
+    params = params[:-1]
+    fullurl = host + url + '?' + params
+    s = requests.session()
+    s.keep_alive = False
+    return fullurl

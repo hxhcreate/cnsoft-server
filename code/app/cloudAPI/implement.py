@@ -4,15 +4,11 @@ import traceback
 import time
 import requests
 
-from Signature import sign
+from Signature import get_fullurl
 
 def log(e):
     traceback.print_stack()
     print(e)
-
-accesskey = 'e74480e45cd5404aa72d6c536e1f3933'
-secretkey = '25c9f0e30e0d4ba6aa4c6b302985f8cf'
-host = 'https://api-wuxi-1.cmecloud.cn:8443'
 
 # 语音转文字
 def audio2text(audioBase64):
@@ -90,17 +86,6 @@ def play_audio(audioBase64):
         wave_file.setnchannels(1)
         wave_file.writeframes(audio)
 
-def get_fullurl(method, url):
-    querystring = sign(method, accesskey, secretkey, url)
-    params = ''
-    for(k,v) in querystring.items():
-        params += str(k) + '=' + str(v) + '&'
-    params = params[:-1]
-    fullurl = host + url + '?' + params
-    s = requests.session()
-    s.keep_alive = False
-    return fullurl
-
 def request_img2text(imgBase64):
     requesturl = '/api/ocr/v1/general'
     fullurl = get_fullurl('POST', requesturl)
@@ -156,7 +141,6 @@ def request_audio2text_recv(sendId):
     return response
 
 if __name__ == '__main__':
-    import requests
     imageurl = r'https://img2.baidu.com/it/u=2026838953,131045863&fm=253&fmt=auto&app=138&f=PNG?w=500&h=658'
     img = requests.get(imageurl).content
     imgBase64 = base64.encodebytes(img).decode()
