@@ -6,22 +6,45 @@ from . import news
 from ..models import News, db, User2News
 
 
+@news.route("/add", methods=['POST'])
+def news_add():  # 需要客户端的请求字段跟Model匹配不然会出错
+    json = request.get_json()
+    # title = json.get("title", "").strip()
+    # digest = json.get("digest", "").strip()
+    # cate = json.get("cate", "").strip()
+    # address = json.get("address", "").strip()
+    # date = json.get("date", "").strip()
+    # source = json.get("source", "").strip()
+    # keywords = json.get("keywords", "").strip()
+    # content = json.get("content", "").strip()
+    # length = json.get("length", "").strip()
+    try:
+        news = News(**json)
+        db.session.add(news)
+        db.session.commit()
+        return jsonify(msg='增加新闻成功', code=200)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='增加新闻失败', code=402)
+
+
 @news.route("/feed", methods=['GET'])  # 获取用户新闻列表
 def news_feed():
     cate = request.args.get("cate", "").strip()
     sign = request.args.get("sign", "").strip()
     nums = request.args.get('nums', "0").strip()
-    if cate != "" and nums != '0':
+    if cate != "" and 0 < int(nums) <= 10:
         try:
             news = News.query.filter_by(cate=cate).order_by(News.heat.desc()).limit(nums).all()
             news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
                           "digest": new.digest, "Hpic": new.hpic,
                           "heat": new.heat, "tag": new.keywords} for new in news]
-            return jsonify(msg='获取新闻列表成功', code=200, nums=nums, news_list=news_list)
+            return jsonify(msg='获取新闻列表成功', code=200, data={"nums": nums, "news_list": news_list})
+
         except Exception as e:
             print(e)
-            return jsonify(msg='error', code=403)
-    return jsonify(msg='error', code=403)
+            return jsonify(msg='数据库查询有错', code=402)
+    return jsonify(msg='参数有错', code=403)
 
 
 @news.route("/getNewsContent", methods=['GET'])
@@ -40,8 +63,8 @@ def get_news_content():
             })
         except Exception as e:
             print(e)
-            return jsonify(msg='error', code=403)
-    return jsonify(msg='error', code=403)
+            return jsonify(msg='数据库查询有错', code=403)
+    return jsonify(msg='参数有错', code=403)
 
 
 @news.route("/onClick", methods=['GET'])

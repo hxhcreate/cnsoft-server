@@ -1,3 +1,5 @@
+from sqlalchemy import orm
+
 from . import db
 import datetime
 
@@ -36,9 +38,6 @@ class User(db.Model):
     user_news = db.relationship("User2News", backref="user")  # 关联到表User2News的
     # user_log = db.relationship("UserLog", backref='user')  # 关联到表UserLog
 
-    def __dict__(self):
-        return {"id": self.id, 'username': self.username}
-
 
 class News(db.Model):
     __tableName__ = 'news'
@@ -52,13 +51,22 @@ class News(db.Model):
     date = db.Column(db.DateTime)
     source = db.Column(db.String(32))
     keywords = db.Column(db.String(100))  # join by ;
-    length = db.Column(db.Integer, default=0)
+    length = db.Column(db.Integer, default=0)   # 创建该对象不会默认  上传之后在数据库层面会默认为0
     content = db.Column(db.Text, default="")
     views = db.Column(db.Integer, default=0)
     loves = db.Column(db.Integer, default=0)
     comments = db.Column(db.Integer, default=0)
     stars = db.Column(db.Integer, default=0)
     user_news = db.relationship("User2News", backref='news')  # 关联到表User2News
+
+    @orm.reconstructor
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for k, v in kwargs.items():
+            self.k = v
+
+    def __getitem__(self, item):
+        return self.item
 
     def increase_love(self):
         self.loves += 1

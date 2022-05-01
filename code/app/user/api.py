@@ -6,7 +6,7 @@ import json
 from flask import request, jsonify, session
 
 from . import user
-from ..models import User, News, db, WeUserToken, WeUserInfo
+from ..models import User, db, WeUserToken
 from ..tools.decoration import login_required
 
 from ..config import app_id, secret
@@ -14,27 +14,23 @@ from ..config import app_id, secret
 
 @user.route("/register", methods=['POST'])
 def user_register():
+    username = request.json.get("username", "").strip()
+    password = request.json.get("password", "").strip()
+    sign = request.json.get("sign", "").strip()
+    if not all([username, password]):
+        return jsonify(msg='用户和密码不能为空', code=403)
+    old_users = User.query.filter_by(username=username).all()
+    if len(old_users) > 0:
+        return jsonify(msg='用户名重复', code=403)
+    user = User(username=username, password=password)
     try:
-        username = request.json.get("username", "").strip()
-        password = request.json.get("password", "").strip()
-        sign = request.json.get("sign", "").strip()
-        if not all([username, password]):
-            return jsonify(msg='用户和密码不能为空', code=403)
-        old_users = User.query.filter_by(username=username).all()
-        if old_users is not []:
-            return jsonify(msg='用户名重复', code=403)
-        user = User(username=username, password=password)
-        try:
-            db.session.add(user)
-            db.session.commit()
-            # userInfo = {'username': user.username, 'password': user.password}
-            return jsonify(msg="注册成功", code=200)
-        except Exception as e:
-            print(e)
-            return jsonify(msg="数据库操作有错", code=402)
+        db.session.add(user)
+        db.session.commit()
+        # userInfo = {'username': user.username, 'password': user.password}
+        return jsonify(msg="注册成功", code=200)
     except Exception as e:
         print(e)
-        return jsonify(msg="连接出错", code=403)
+        return jsonify(msg="数据库操作有错", code=402)
 
 
 @user.route("/login", methods=['POST'])
@@ -42,7 +38,7 @@ def user_login():
     username = request.json.get("username", "").strip()
     password = request.json.get("password", "").strip()
     sign = request.json.get("sign", "").strip()
-    print(username)
+
     if not all([username, password]):
         return jsonify(msg='用户和密码不能为空', code=403)
     try:

@@ -1,8 +1,8 @@
-"""add
+"""init
 
-Revision ID: 9c2183ae85a1
+Revision ID: 4bf70364f0bc
 Revises: 
-Create Date: 2022-04-24 14:19:05.024102
+Create Date: 2022-05-01 15:43:20.565926
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '9c2183ae85a1'
+revision = '4bf70364f0bc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,12 +27,21 @@ def upgrade():
     )
     op.create_table('news',
     sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('title', sa.String(length=64), nullable=True),
+    sa.Column('digest', sa.Text(), nullable=True),
+    sa.Column('cate', sa.String(length=5), nullable=False),
     sa.Column('address', sa.String(length=32), nullable=True),
-    sa.Column('date', sa.DATE(), nullable=True),
-    sa.Column('platform', sa.String(length=32), nullable=True),
+    sa.Column('hpic', sa.String(length=64), nullable=True),
+    sa.Column('heat', sa.Float(), nullable=True),
+    sa.Column('date', sa.DateTime(), nullable=True),
+    sa.Column('source', sa.String(length=32), nullable=True),
     sa.Column('keywords', sa.String(length=100), nullable=True),
     sa.Column('length', sa.Integer(), nullable=True),
-    sa.Column('total_clicks_by_user', sa.BigInteger(), nullable=True),
+    sa.Column('content', sa.Text(), nullable=True),
+    sa.Column('views', sa.Integer(), nullable=True),
+    sa.Column('loves', sa.Integer(), nullable=True),
+    sa.Column('comments', sa.Integer(), nullable=True),
+    sa.Column('stars', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
@@ -41,7 +50,7 @@ def upgrade():
     sa.Column('password', sa.String(length=64), nullable=False),
     sa.Column('cate', sa.Enum('pure', 'wechat', 'phone'), nullable=True),
     sa.Column('nickname', sa.String(length=64), nullable=True),
-    sa.Column('avatar', sa.String(length=64), nullable=True),
+    sa.Column('avatar', sa.String(length=200), nullable=True),
     sa.Column('gender', sa.Enum('male', 'female'), nullable=True),
     sa.Column('age', sa.Integer(), nullable=True),
     sa.Column('city', sa.String(length=32), nullable=True),
@@ -64,7 +73,7 @@ def upgrade():
     sa.Column('province', sa.String(length=32), nullable=True),
     sa.Column('city', sa.String(length=32), nullable=True),
     sa.Column('country', sa.String(length=32), nullable=True),
-    sa.Column('head_img_url', sa.String(length=100), nullable=True),
+    sa.Column('head_img_url', sa.String(length=200), nullable=True),
     sa.Column('privilege', sa.String(length=100), nullable=True),
     sa.Column('union_id', sa.String(length=64), nullable=True),
     sa.PrimaryKeyConstraint('id'),
@@ -84,7 +93,7 @@ def upgrade():
     op.create_index(op.f('ix_we_user_token_refresh_token'), 'we_user_token', ['refresh_token'], unique=False)
     op.create_table('user2_news',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('start_time', sa.DATE(), nullable=False),
+    sa.Column('start_time', sa.DateTime(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('news_id', sa.Integer(), nullable=False),
     sa.Column('read_time', sa.Integer(), nullable=True),
@@ -93,8 +102,7 @@ def upgrade():
     sa.Column('is_favorite', sa.Boolean(), nullable=True),
     sa.ForeignKeyConstraint(['news_id'], ['news.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('start_time')
+    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 
