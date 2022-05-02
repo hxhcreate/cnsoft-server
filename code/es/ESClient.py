@@ -1,6 +1,8 @@
 from elasticsearch import Elasticsearch
 import datetime
 import json
+from functools import wraps
+
 
 
 class ESClient:
@@ -15,8 +17,55 @@ class ESClient:
                                 sniff_timeout=60,
                                 sniff_on_connection_fail=True)  # 刷新节点
 
+    def index_exists(self):
+        def decorator(f):
+            @wraps(f)
+            def decorated_function(*args, **kwargs):
+                if self.es.indices.exists(self.index):
+                    raise AssertionError
+                return f(*args, **kwargs)
+
+            return decorated_function
+
+        return decorator
+
     def get_mapping(self):
-        raise NotImplemented
+        return {
+            "mappings": {
+                'properties': {
+                    "id": {
+                      "type": "integer"
+                    },
+                    'title': {
+                        'type': "text"
+                    },
+                    "digest": {
+                        'type': "text"
+                    },
+                    "cate": {
+                        'type': "keyword"
+                    },
+                    "address": {
+                      "type": "text"
+                    },
+                    "date": {
+                      "type": "date"
+                    },
+                    "source": {
+                      "type": "text"
+                    },
+                    "hpic": {
+                      "type": "text"
+                    },
+                    "heat": {
+                        'type': "double"
+                    },
+                    "keywords": {
+                        "type": "text"
+                    }
+                }
+            }
+        }
 
     def delete_index(self):
         return self.es.indices.delete(index=self.index)
@@ -29,11 +78,32 @@ class ESClient:
             else:
                 print("The index {} already exists, "
                       "if you want to delete it, set overwrite to True")
+                return
         self.es.indices.create(index=self.index, body=self.mapping)
         print("Index {} has been built.".format(self.index))
 
     def put_mapping(self, body):
         self.es.indices.put_mapping(index=self.index, body=body)
+
+    def add_doc(self):
+        raise NotImplemented
+
+    @index_exists()
+    def search(self, search_input):
+        body = {
+            "query": {
+                "bool": {
+                    "should": [
+                        "match": {},
+                    ]
+                }
+            }
+        }
+
+
+
+
+
 
 
 
