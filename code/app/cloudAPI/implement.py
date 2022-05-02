@@ -1,10 +1,14 @@
-import json
 import base64
-import traceback
+import json
 import time
+import traceback
+
 import requests
 
+requests.packages.urllib3.disable_warnings()
+
 from Signature import get_fullurl
+
 
 def log(e):
     traceback.print_stack()
