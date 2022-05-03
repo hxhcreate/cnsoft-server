@@ -3,38 +3,52 @@ import datetime
 import json
 from functools import wraps
 
+import sys
 
+sys.path.append('..')
+from app import db  # 引入的是manage中已经实例化app的db
+from app import create_app
+from app.models import News
+
+app = create_app("develop")
 
 class ESClient:
     def __init__(self, **kwargs):
         self.hosts = kwargs['hosts']
-        self.port = kwargs['port']
         self.index = kwargs['index']
         self.mapping = self.get_mapping()
         self.es = Elasticsearch(hosts=self.hosts,
-                                port=self.port,
                                 sniff_on_start=True,  # 连接前测试
                                 sniff_timeout=60,
                                 sniff_on_connection_fail=True)  # 刷新节点
+        self.build_index()
 
-    def index_exists(self):
-        def decorator(f):
-            @wraps(f)
-            def decorated_function(*args, **kwargs):
-                if self.es.indices.exists(self.index):
-                    raise AssertionError
-                return f(*args, **kwargs)
-
-            return decorated_function
-
-        return decorator
+    # 从sql中获取数据
+    def get_data_from_mysql(self):
+        with app.app_context():
+            news_list = News.query.all()
+            for news in news_list:
+                params = {
+                    "id": news.id,
+                    "title": news.title,
+                    "digest": news.digest,
+                    "cate": news.cate,
+                    "cate2": news.cate2,
+                    "date": news.date,
+                    "address": news.address,
+                    "source": news.source,
+                    "hpic": news.hpic,
+                    "heat": news.heat,
+                    "keywords": news.keywords
+                }
+                self.add_doc(params)
 
     def get_mapping(self):
         return {
             "mappings": {
                 'properties': {
                     "id": {
-                      "type": "integer"
+                        "type": "integer"
                     },
                     'title': {
                         'type': "text"
@@ -45,17 +59,20 @@ class ESClient:
                     "cate": {
                         'type': "keyword"
                     },
-                    "address": {
-                      "type": "text"
+                    "cate2": {
+                        'type': "keyword"
                     },
                     "date": {
-                      "type": "date"
+                        "type": "date"
+                    },
+                    "address": {
+                        "type": "text"
                     },
                     "source": {
-                      "type": "text"
+                        "type": "text"
                     },
                     "hpic": {
-                      "type": "text"
+                        "type": "text"
                     },
                     "heat": {
                         'type': "double"
@@ -85,25 +102,22 @@ class ESClient:
     def put_mapping(self, body):
         self.es.indices.put_mapping(index=self.index, body=body)
 
-    def add_doc(self):
-        raise NotImplemented
+    def add_doc(self, doc):
+        self.es.index(index=self.index, body=doc)
 
-    @index_exists()
-    def search(self, search_input):
-        body = {
-            "query": {
-                "bool": {
-                    "should": [
-                        "match": {},
-                    ]
-                }
-            }
-        }
-
-
+    # @index_exists()
+    # def search(self, search_input):
+    #     body = {
+    #         "query": {
+    #             "bool": {
+    #                 "should": [
+    #                     "match": {},
+    #                 ]
+    #             }
+    #         }
+    #     }
 
 
-
-
-
-
+if __name__ == "__main__":
+    es = ESClient(hosts=[{'host': "127.0.0.1", "port": 9200}], index="2022soft")
+    # es.get_data_from_mysql()
