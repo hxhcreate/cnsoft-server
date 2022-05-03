@@ -136,7 +136,7 @@ dmypy.json
 .idea/
 
 # mp3
-.mp3
+*.mp3
 
 # .zip
-.zip
+*.zip

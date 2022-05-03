@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from .config import config_map
 
+
 db = SQLAlchemy()
 
 
@@ -20,9 +21,8 @@ def create_app(config_name):
 
     """注册蓝图"""
     from . import admin, user, news, cloudAPI
-
-    app.register_blueprint(news.news, url_prefix='/news')
     app.register_blueprint(user.user, url_prefix="/user")
     app.register_blueprint(admin.admin, url_prefix='/admin')
+    app.register_blueprint(news.news, url_prefix='/news')
     app.register_blueprint(cloudAPI.cloudAPI, url_prefix='/cloudAPI')
     return app
