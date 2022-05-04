@@ -105,17 +105,17 @@ class ESClient:
     def add_doc(self, doc):
         self.es.index(index=self.index, body=doc)
 
-    # @index_exists()
-    # def search(self, search_input):
-    #     body = {
-    #         "query": {
-    #             "bool": {
-    #                 "should": [
-    #                     "match": {},
-    #                 ]
-    #             }
-    #         }
-    #     }
+    @index_exists()
+    def search(self, search_input):
+        body = {
+            "query": {
+                "bool": {
+                    "should": [
+                        "match": {},
+                    ]
+                }
+            }
+        }
 
 
 if __name__ == "__main__":
