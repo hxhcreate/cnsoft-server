@@ -12,6 +12,7 @@ from app.models import News
 
 app = create_app("develop")
 
+
 class ESClient:
     def __init__(self, **kwargs):
         self.hosts = kwargs['hosts']
@@ -105,19 +106,64 @@ class ESClient:
     def add_doc(self, doc):
         self.es.index(index=self.index, body=doc)
 
-    @index_exists()
     def search(self, search_input):
         body = {
             "query": {
                 "bool": {
                     "should": [
-                        "match": {},
+                        # {
+                        #     "match": {
+                        #         "keywords": search_input
+                        #     }
+                        # },
+                        {
+                            "match": {
+                                "title": search_input
+                            }
+                        },
+                        {
+                            "term": {
+                                "cate": search_input
+                            }
+                        },
+                        {
+                            "term": {
+                                "cate2": search_input
+                            }
+                        }
                     ]
+                }
+            },
+            "from": 0,
+            "size": 10,
+            "highlight": {
+                "boundary_scanner": "sentence",
+                "pre_tags": "<em>",
+                "post_tags": "</em>",
+                "fields": {
+                    "title": {
+                        "pre_tags": [
+                            "<h1>"
+                        ],
+                        "post_tags": [
+                            "</h1>"
+                        ]
+                    }
                 }
             }
         }
+        re = self.es.search(index=self.index, body=body)
+        print(re)
+        print(re['took'])
+        total = re['hits']['total']['value']
+        for item in re['hits']['hits']:
+            id = item['_source']['id']
+            title = item['_source']['title']
+            highligth_title = item['highlight']['title']
+            print(id, title, highligth_title)
 
 
 if __name__ == "__main__":
     es = ESClient(hosts=[{'host': "127.0.0.1", "port": 9200}], index="2022soft")
     # es.get_data_from_mysql()
+    es.search("勒布朗 皇帝")
