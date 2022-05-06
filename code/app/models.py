@@ -1,7 +1,10 @@
+from flask import jsonify
 from sqlalchemy import orm
 
 from . import db
 import datetime
+
+default_time_str = "00-01-01 00:00:00"
 
 
 class Admin(db.Model):
@@ -16,16 +19,16 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), nullable=False, unique=True)
     password = db.Column(db.String(64), nullable=False)
-    cate = db.Column(db.Enum("pure", "wechat", "phone"))
-    nickname = db.Column(db.String(64))
-    avatar = db.Column(db.String(200))  # 头像图片的url
-    gender = db.Column(db.Enum("male", "female"))
-    age = db.Column(db.Integer)
-    city = db.Column(db.String(64))
-    job = db.Column(db.String(64))
+    cate = db.Column(db.Enum("pure", "wechat", "phone"), default="pure")
+    nickname = db.Column(db.String(64), default="")
+    avatar = db.Column(db.String(200), default='')  # 头像图片的url
+    gender = db.Column(db.Enum("male", "female"), default='')
+    age = db.Column(db.Integer, default=0)
+    city = db.Column(db.String(64), default='')
+    job = db.Column(db.String(64), default='')
     """其他登录方式"""
-    phone = db.Column(db.String(11))
-    wechat_id = db.Column(db.String(64))
+    phone = db.Column(db.String(11), default='')
+    wechat_id = db.Column(db.String(64), default='')
 
     """统计信息"""
     exp = db.Column(db.Integer, default=0)
@@ -36,23 +39,30 @@ class User(db.Model):
 
     """外键关联"""
     user_news = db.relationship("User2News", backref="user")  # 关联到表User2News的
+
     # user_log = db.relationship("UserLog", backref='user')  # 关联到表UserLog
+
+    @staticmethod
+    def select_user_by_id(id):
+        user = User.query.filter_by(id=id).first()
+        if isinstance(user, [None]):
+            raise Exception
 
 
 class News(db.Model):
     __tableName__ = 'news'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(64))
+    title = db.Column(db.String(64), default="")
     digest = db.Column(db.Text, default="")
     cate = db.Column(db.String(16), nullable=False)
     cate2 = db.Column(db.String(16), nullable=False)
     address = db.Column(db.String(64), default="")
     hpic = db.Column(db.String(255), default="")  # 头部图片Url
-    heat = db.Column(db.Float)  # 新闻热度 浮点型
-    date = db.Column(db.DateTime)
+    heat = db.Column(db.Float, default=0)  # 新闻热度 浮点型
+    date = db.Column(db.DateTime, default=datetime.datetime.strptime(default_time_str, "%y-%m-%d %H:%M:%S"))
     source = db.Column(db.String(32), default="")
     keywords = db.Column(db.String(255), default="")  # join by ;
-    length = db.Column(db.Integer, default=0)   # 创建该对象不会默认  上传之后在数据库层面会默认为0
+    length = db.Column(db.Integer, default=0)  # 创建该对象不会默认  上传之后在数据库层面会默认为0
     content = db.Column(db.Text(16777216), default="")
     views = db.Column(db.Integer, default=0)
     loves = db.Column(db.Integer, default=0)
@@ -65,6 +75,17 @@ class News(db.Model):
         super().__init__(**kwargs)
         for k, v in kwargs.items():
             self.k = v
+
+    def add_news(self):
+        db.session.add(self)
+        db.session.commit()
+
+
+    @staticmethod
+    def select_news_by_id(id):
+        news = News.query.filter_by(id=id).first()
+        if isinstance(news, [None]):
+            raise Exception
 
     def __getitem__(self, item):
         return self.item
@@ -128,4 +149,6 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     privilege = db.Column(db.String(100), default="")
     union_id = db.Column(db.String(64), default="")
 
-
+# if __name__ == "__main__":
+#     news = News(cate='体育', cate2='台球')
+#     news.add_news()

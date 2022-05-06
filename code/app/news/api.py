@@ -20,8 +20,7 @@ def news_add():  # 需要客户端的请求字段跟Model匹配不然会出错
     # length = json.get("length", "").strip()
     try:
         news = News(**json)
-        db.session.add(news)
-        db.session.commit()
+        news.add_news()
         return jsonify(msg='增加新闻成功', code=200)
     except Exception as e:
         print(e)
@@ -53,17 +52,17 @@ def get_news_content():
     sign = request.args.get("sign", "").strip()
     if news_id and sign:
         try:
-            news = News.query.filter_by(id=news_id).first()
-            return jsonify(msg='success', code=200, data={
-                'newsID': news.id, 'cate': news.cate,
-                'title': news.title, "heat": news.heat,
-                'time': news.date.strftime("%Y-%m-%d %H:%M:%S"), "source": news.source,
-                'content': news.content, 'viewNum': news.views, 'loveNum': news.loves,
-                'commentNum': news.comments, 'starNum': news.stars
-            })
+            news = News.select_news_by_id(news_id)
         except Exception as e:
             print(e)
-            return jsonify(msg='数据库查询有错', code=403)
+            return jsonify(msg='不存在该新闻', code=403)
+        return jsonify(msg='success', code=200, data={
+            'newsID': news.id, 'cate': news.cate,
+            'title': news.title, "heat": news.heat,
+            'time': news.date.strftime("%Y-%m-%d %H:%M:%S"), "source": news.source,
+            'content': news.content, 'viewNum': news.views, 'loveNum': news.loves,
+            'commentNum': news.comments, 'starNum': news.stars
+        })
     return jsonify(msg='参数有错', code=403)
 
 
