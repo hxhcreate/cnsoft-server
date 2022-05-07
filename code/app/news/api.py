@@ -6,6 +6,15 @@ from . import news
 from ..models import News, db, User2News
 
 
+# 搜索
+@news.route("/search", methods=['GET'])
+def news_search():
+    search_input = request.args.get("input", "").strip()
+    if search_input is not "":
+        return
+    return
+
+
 @news.route("/add", methods=['POST'])
 def news_add():  # 需要客户端的请求字段跟Model匹配不然会出错
     json = request.get_json()

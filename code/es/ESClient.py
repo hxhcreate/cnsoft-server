@@ -166,4 +166,4 @@ class ESClient:
 if __name__ == "__main__":
     es = ESClient(hosts=[{'host': "127.0.0.1", "port": 9200}], index="2022soft")
     # es.get_data_from_mysql()
-    es.search("勒布朗 皇帝")
+    es.search("姚明")
