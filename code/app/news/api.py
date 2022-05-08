@@ -29,7 +29,7 @@ def news_add():  # 需要客户端的请求字段跟Model匹配不然会出错
     # length = json.get("length", "").strip()
     try:
         news = News(**json)
-        news.add_news()
+        News.add(news)
         return jsonify(msg='增加新闻成功', code=200)
     except Exception as e:
         print(e)

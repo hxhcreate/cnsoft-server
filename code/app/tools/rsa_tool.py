@@ -1,11 +1,11 @@
 import rsa
 import base64
 from rsa import PublicKey, PrivateKey
-import sys
 
+import sys
 sys.path.append('..')
 
-from config import PRIVATE_KEY, PUBLIC_KEY
+from ..config import PRIVATE_KEY, PUBLIC_KEY
 
 
 # 将上一级的目录加入到import目录中
@@ -28,5 +28,5 @@ def rsa_decrypt(crypto):
     return result
 
 
-if __name__ == "__main__":
-    print(rsa_decrypt(rsa_encrypt("123456789")))
+# if __name__ == "__main__":
+#     print(rsa_decrypt(rsa_encrypt("123456789")))

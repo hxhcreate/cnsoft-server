@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from . import db
 import datetime
 
-from .tools.rsaDecrypt import rsa_decrypt
+from .tools.rsa_tool import rsa_decrypt
 
 default_time_str = "00-01-01 00:00:00"
 
@@ -54,10 +54,36 @@ class User(db.Model):
 
     # user_log = db.relationship("UserLog", backref='user')  # 关联到表UserLog
 
-    def select_user_by_id(self, id):
-        user = self.query.filter_by(id=id).first()
+    @orm.reconstructor
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for k, v in kwargs.items():
+            self.k = v
+
+    @staticmethod
+    def add(user):
+        db.session.add(user)
+        return session_commit()
+
+    @staticmethod
+    def delete(id):
+        User.query.filter_by(id=id).delete()
+        return session_commit()
+
+    @staticmethod
+    def update():
+        return session_commit()
+
+    @staticmethod
+    def select_user_by_id(id):
+        user = User.query.filter_by(id=id).first()
         if isinstance(user, [None]):
             raise Exception
+
+    def check_password(self, crypto):
+        if self.password == rsa_decrypt(crypto):
+            return True
+        return False
 
     @staticmethod
     def decode_password(crypto):
@@ -91,12 +117,14 @@ class News(db.Model):
         for k, v in kwargs.items():
             self.k = v
 
-    def add_news(self):
-        db.session.add(self)
-        db.session.commit()
+    @staticmethod
+    def add(news):
+        db.session.add(news)
+        return session_commit()
 
-    def select_news_by_id(self, id):
-        news = self.query.filter_by(id=id).first()
+    @staticmethod
+    def select_news_by_id(id):
+        news = News.query.filter_by(id=id).first()
         if isinstance(news, [None]):
             raise Exception
 
