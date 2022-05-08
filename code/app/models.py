@@ -80,6 +80,12 @@ class User(db.Model):
         if isinstance(user, [None]):
             raise Exception
 
+    @staticmethod
+    def select_user_by_username(username):
+        user = User.query.filter_by(username=username).first()
+        if isinstance(user, [None]):
+            raise Exception
+
     def check_password(self, crypto):
         if self.password == rsa_decrypt(crypto):
             return True

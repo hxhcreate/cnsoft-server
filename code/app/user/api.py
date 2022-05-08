@@ -48,7 +48,6 @@ def user_login():
         return jsonify(msg='数据库操作有误', code=402)
     if user and user.password == password:
         timeStamp = int(time.time())
-
         session['user' + str(user.id)] = timeStamp
         # redis_db.handle_redis_token("user" + str(user.id), timeStamp)  # 用来和管理员表的username做区分
         userInfo = {'username': user.username,

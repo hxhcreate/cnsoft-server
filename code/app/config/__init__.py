@@ -19,6 +19,8 @@ PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCBavyp/nXGyAd" \
              "SUJsZr0xt514Z1hILzN3mBUUlQRrWiacuB1vA8SOVqh9frtyOBUsaQV6f21kD0D" \
              "ec+BL3rs4VODtkCApy2//02/Maq3QHvP+5JTbTwIDAQAB"
 
+SECRET_KEY = "easy reading"
+
 # wechat配置
 app_id = None
 secret = None
