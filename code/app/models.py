@@ -1,10 +1,22 @@
 from flask import jsonify
 from sqlalchemy import orm
+from sqlalchemy.exc import SQLAlchemyError
 
 from . import db
 import datetime
 
+from .tools.rsaDecrypt import rsa_decrypt
+
 default_time_str = "00-01-01 00:00:00"
+
+
+def session_commit():
+    try:
+        db.session.commit()
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        reason = str(e)
+        return reason
 
 
 class Admin(db.Model):
@@ -42,11 +54,14 @@ class User(db.Model):
 
     # user_log = db.relationship("UserLog", backref='user')  # 关联到表UserLog
 
-    @staticmethod
-    def select_user_by_id(id):
-        user = User.query.filter_by(id=id).first()
+    def select_user_by_id(self, id):
+        user = self.query.filter_by(id=id).first()
         if isinstance(user, [None]):
             raise Exception
+
+    @staticmethod
+    def decode_password(crypto):
+        return rsa_decrypt(crypto)
 
 
 class News(db.Model):
@@ -80,10 +95,8 @@ class News(db.Model):
         db.session.add(self)
         db.session.commit()
 
-
-    @staticmethod
-    def select_news_by_id(id):
-        news = News.query.filter_by(id=id).first()
+    def select_news_by_id(self, id):
+        news = self.query.filter_by(id=id).first()
         if isinstance(news, [None]):
             raise Exception
 
