@@ -137,3 +137,5 @@ dmypy.json
 
 # migrate
 migrations/
+
+*.mp3

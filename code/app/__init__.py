@@ -23,5 +23,5 @@ def create_app(config_name):
     from . import admin
     from . import user
     app.register_blueprint(user.user, url_prefix="/user")
-    app.register_blueprint(admin.admin, url_prefix='/auth')
+    app.register_blueprint(admin.admin, url_prefix='/admin')
     return app
