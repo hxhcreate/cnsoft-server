@@ -77,7 +77,7 @@ def admin_check_session(username):
 
 @admin.route("/code", methods=['GET'])
 def admin_code():
-    return open(r'D:\@project\2022-3cnsoft\server\code\dist\favicon.ico', 'rb').read()
+    return r"open(r'D:\@project\2022-3cnsoft\server\code\dist\favicon.ico', 'rb').read()"
 
 @admin.route("/static/<path:path>", methods=['GET'])
 def admin_static(path):
