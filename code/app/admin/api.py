@@ -1,7 +1,7 @@
 import time
 from datetime import datetime
 
-from flask import request, jsonify, session, url_for, render_template
+from flask import request, jsonify, session, url_for, render_template, send_from_directory
 
 from . import admin
 from ..models import Admin, db
@@ -15,10 +15,6 @@ from ..models import Admin, db
 @admin.route("/", methods=['GET'])
 def admin_index():
     return open("dist/index.html").read()
-
-@admin.route("/static/<path:static_file>", methods=['GET'])
-def admin_static(static_file):
-    return open("dist/static/" + static_file, 'rb').read()
 
 @admin.route("/register", methods=['POST'])
 def admin_register():
@@ -78,4 +74,12 @@ def admin_check_session(username):
         return jsonify(username=username, code=200)
     else:
         return jsonify(msg="管理员尚未登录", code=4000)
+
+@admin.route("/code", methods=['GET'])
+def admin_code():
+    return open(r'D:\@project\2022-3cnsoft\server\code\dist\favicon.ico', 'rb').read()
+
+@admin.route("/static/<path:path>", methods=['GET'])
+def admin_static(path):
+    return send_from_directory('../dist/static/' + '/'.join(path.split('/')[0:-1]), path.split('/')[-1])
 

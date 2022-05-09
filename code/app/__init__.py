@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 
 from flask_session import Session
@@ -18,10 +18,15 @@ def create_app(config_name):
     db.init_app(app)  # 实例化数据库
 
     Session(app)  # 将app中的session数据全部读出来
+    @app.route('/')
+    def index():
+        return send_from_directory("../dist", 'index.html')
 
     """注册蓝图"""
     from . import admin
     from . import user
     app.register_blueprint(user.user, url_prefix="/user")
     app.register_blueprint(admin.admin, url_prefix='/admin')
+
+
     return app
