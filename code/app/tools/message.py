@@ -1,8 +1,8 @@
 from flask import jsonify
 
 
-def Success(data=None):
-    return jsonify(msg="success", status=200, data=data)
+def Success(msg="success", data=None):
+    return jsonify(msg=msg, status=200, data=data)
 
 
 def ParamsError(data=None):
@@ -19,3 +19,7 @@ def PwdError(data=None):
 
 def MessageFailed(data=None):
     return jsonify(msg='failed to', status=400, data=data)
+
+
+def ERROR(data=None, msg="error"):
+    return jsonify(msg=msg, status=403, data=data)

@@ -15,8 +15,7 @@ def session_commit():
         db.session.commit()
     except SQLAlchemyError as e:
         db.session.rollback()
-        reason = str(e)
-        return reason
+        print(e)
 
 
 class Admin(db.Model):
@@ -32,6 +31,7 @@ class User(db.Model):
     username = db.Column(db.String(64), nullable=False, unique=True)
     password = db.Column(db.String(64), nullable=False)
     cate = db.Column(db.Enum("pure", "wechat", "phone"), default="pure")
+    type = db.Column(db.Enum("0", "1"), default='1')  # 0 代表的是管理员
     nickname = db.Column(db.String(64), default="")
     avatar = db.Column(db.String(200), default='')  # 头像图片的url
     gender = db.Column(db.Enum("male", "female"), default='')
@@ -63,31 +63,41 @@ class User(db.Model):
     @staticmethod
     def add(user):
         db.session.add(user)
-        return session_commit()
+        session_commit()
 
     @staticmethod
     def delete(id):
         User.query.filter_by(id=id).delete()
         return session_commit()
 
+    def update_user_info(self, **kwargs):
+        for k, v in kwargs.items():
+            self.k = v
+        db.session.add(self)
+        session_commit()
+
     @staticmethod
     def update():
-        return session_commit()
+        session_commit()
 
     @staticmethod
     def select_user_by_id(id):
-        user = User.query.filter_by(id=id).first()
-        if isinstance(user, [None]):
-            raise Exception
+        return User.query.filter_by(id=id).first()
 
     @staticmethod
     def select_user_by_username(username):
-        user = User.query.filter_by(username=username).first()
-        if isinstance(user, [None]):
-            raise Exception
+        return User.query.filter_by(username=username).first()
 
-    def check_password(self, crypto):
-        if self.password == rsa_decrypt(crypto):
+    @staticmethod
+    def is_exist_user_by_username(username):
+        old_users = User.query.filter_by(username=username).all()
+        if len(old_users) > 0:
+            return True
+        return False
+
+    @staticmethod
+    def check_password(password, crypto):
+        if password == rsa_decrypt(crypto):
             return True
         return False
 
@@ -126,7 +136,7 @@ class News(db.Model):
     @staticmethod
     def add(news):
         db.session.add(news)
-        return session_commit()
+        session_commit()
 
     @staticmethod
     def select_news_by_id(id):

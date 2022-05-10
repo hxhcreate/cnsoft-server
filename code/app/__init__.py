@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+# from flask_restplus import Api, Resource, fields
 
 from flask_session import Session
 from .config import config_map
@@ -25,4 +26,12 @@ def create_app(config_name):
     app.register_blueprint(admin.admin, url_prefix='/admin')
     app.register_blueprint(news.news, url_prefix='/news')
     app.register_blueprint(cloudAPI.cloudAPI, url_prefix='/cloudAPI')
+
+    # """文档配置"""
+    # api = Api(app, version='1.0', title='软件杯团队 API', description='A authenticate user and save cloud accounts API')
+    # user = api.namespace('user', path='/user')
+    # news = api.namespace('cloud accounts', path='/news')
+    # cloudAPI = api.namespace('cloudAPI', path='/cloudAPI')
+    # admin = api.namespace('admin', path='/admin')
+    #
     return app

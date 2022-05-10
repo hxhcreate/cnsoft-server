@@ -2,12 +2,13 @@ import jwt, datetime, time, datetime
 from flask import jsonify
 from ..models import User
 from ..config import SECRET_KEY
-from message import *
+from .message import *
+from ..config.redis import redis_db
 
 
 class Auth:
     @staticmethod
-    def encode_auth_token(user_id, login_time):
+    def encode_auth_token(user_id, login_time, platform, type):
         """
         生成认证Token
         :param user_id: int
@@ -21,7 +22,9 @@ class Auth:
                 'iss': 'ken',
                 'data': {
                     'id': user_id,
-                    'login_time': login_time
+                    'logtime': login_time,
+                    "pt": platform,
+                    "type": type
                 }
             }
             return jwt.encode(
@@ -42,7 +45,7 @@ class Auth:
         try:
             # payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), leeway=datetime.timedelta(seconds=10))
             # 取消过期时间验证
-            payload = jwt.decode(auth_token, SECRET_KEY, options={'verify_exp': False})
+            payload = jwt.decode(auth_token, SECRET_KEY, options={'verify_exp': True})
             if 'data' in payload and 'id' in payload['data']:
                 return payload
             else:
@@ -52,50 +55,32 @@ class Auth:
         except jwt.InvalidTokenError:
             return '无效Token'
 
-    def authenticate(self, username, password):
-        """
-        用户登录，登录成功返回token，写将登录时间写入数据库；登录失败返回失败原因
-        :param password:
-        :return: json
-        """
-        try:
-            user = User.select_user_by_username(username)
-        except Exception as e:
-            print(e)
-            return SQLError()
-        else:
-            if user.check_password(password):
-                time_stamp = int(time.time())
-                token = self.encode_auth_token(user.id, time_stamp)
-                return Success(
-                    {"token": token.decode(), "logtime": time.strftime("%Y-%m-%d %H:%M:%S",
-                                                                       time.localtime(time_stamp))})
-            else:
-                return PwdError()
+    @staticmethod
+    def authenticate(self, ori_encrypt, password):
+        if User.check_password(password, ori_encrypt):
+            return True
+        return False
 
-    def identify(self, request):
+    @staticmethod
+    def identify(auth_header):
         """
         用户鉴权
-        :return: list
+        :return: 错误返回jsonify  正确返回用户信息
         """
-        auth_header = request.headers.get('Authorization')
         if auth_header:
             auth_tokenArr = auth_header.split(" ")
             if not auth_tokenArr or auth_tokenArr[0] != 'JWT' or len(auth_tokenArr) != 2:
-                return ParamsError()
+                return ERROR(msg='请传递正确的请求消息头')
             else:
                 auth_token = auth_tokenArr[1]
-                payload = self.decode_auth_token(auth_token)
+                payload = Auth.decode_auth_token(auth_token)
                 if not isinstance(payload, str):
-                    try:
-                        user = User.select_user_by_id(payload.data.id)
-                    except Exception as e:
-                        print(e)
-                        return SQLError()
-                    if user.login_time == payload['data']['login_time']:
-                        return Success()
-                    else:
-                        return MessageFailed()
+                    user = User.select_user_by_id(payload['data']['id'])
+                    if isinstance(user, None):
+                        return ERROR(msg='未找到该用户')
+                    if not redis_db.exists_key('user' + str(user.id)):
+                        return ERROR(msg='用户没有登录')
+                    return payload['data']
                 else:
-                    return MessageFailed()
-        return ParamsError()
+                    return ERROR(msg=payload)
+        return ERROR(msg="未提供认证token")

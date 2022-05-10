@@ -44,16 +44,16 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "secret"
     # flask-session配置
-    SESSION_TYPE = "redis"
-    SESSION_USE_SIGNER = True  # 对cookie中session_id进行隐藏处理 加密混淆
-    PERMANENT_SESSION_LIFETIME = SESSION_EXPIRE_TIME  # session数据的有效期，单位秒
+    # SESSION_TYPE = "redis"
+    # SESSION_USE_SIGNER = True  # 对cookie中session_id进行隐藏处理 加密混淆
+    # PERMANENT_SESSION_LIFETIME = SESSION_EXPIRE_TIME  # session数据的有效期，单位秒
 
 
 # 开发环境
 class DevelopmentConfig(Config):
     """开发模式的配置信息"""
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@127.0.0.1:3306/2022soft'
-    SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=DEV_DB)
+    # SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=DEV_DB)
     DEBUG = True
 
 
@@ -61,7 +61,7 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     """生产环境配置信息"""
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/2022soft'
-    SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=PRO_DB)
+    # SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=PRO_DB)
 
 
 config_map = {

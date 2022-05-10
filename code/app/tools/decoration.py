@@ -13,3 +13,4 @@ def login_required(id):
         return decorated_function
 
     return decorator
+
