@@ -21,6 +21,9 @@ def create_app(config_name):
     @app.route('/')
     def index():
         return send_from_directory("../dist", 'index.html')
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory("../dist", 'favicon.ico')
 
     """注册蓝图"""
     from . import admin
