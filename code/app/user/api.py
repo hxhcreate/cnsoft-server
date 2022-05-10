@@ -12,6 +12,7 @@ from ..tools.decoration import login_required
 from ..config import app_id, secret
 from ..config.redis import redis_db
 from ..tools.auth import Auth
+from ..config.es import es
 
 from ..tools.message import *
 
@@ -43,13 +44,14 @@ def user_login():
     if not all([username, ori_password]):
         return jsonify(msg='用户和密码不能为空', code=403)
     user = User.select_user_by_username(username)
-    if isinstance(user, None):
+    if user is None:
         return jsonify(msg='未查找到该用户', code=402)
 
     # 引入Auth板块
     if Auth.authenticate(ori_password, user.password):
         time_stamp = int(time.time())
         token = Auth.encode_auth_token(user.id, time_stamp, "pure", user.type)
+        print(token)
         redis_db.handle_redis_token("user" + str(user.id), token)
         return Success(
             {"token": token, "logtime": time.strftime("%Y-%m-%d %H:%M:%S",
@@ -95,7 +97,7 @@ def user_get_info():
     re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
     if not isinstance(re, dict):
         return re
-    if id == re['id']:
+    if re['type'] == "0" or id == re['id']:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -118,7 +120,7 @@ def user_get_stats_info():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if id == re['id']:
+    if re['type'] == "0" or id == re['id']:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -143,7 +145,7 @@ def user_info_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if re['id'] == id:
+    if re['type'] == "0" or re['id'] == id:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -159,6 +161,9 @@ def user_info_update():
 # 改头像
 @user.route("/update/avatar/", methods=['POST'])
 def user_avatar_update():
+    """
+    fdsaf
+    """
     new_avatar_url = request.json.get("avatar", "").strip()
     id = request.json.get("id", "").strip()
     sign = request.json.get("sign", "").strip()
@@ -166,7 +171,7 @@ def user_avatar_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if id == re['id']:
+    if re['type'] == "0" or id == re['id']:
         try:
             user_num = User.query.filter_by(id=id).first().update({"avatar": new_avatar_url})
             db.session.commit()
@@ -185,7 +190,7 @@ def user_pwd_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if id == re['id']:
+    if re['type'] == '0' or id == re['id']:
         old_pwd = request.json.get('oldpwd', "").strip()
         new_pwd = request.json.get('newpad', "").strip()
         sign = request.args.get("sign", "").strip()
@@ -202,6 +207,26 @@ def user_pwd_update():
             print(e)
             return jsonify(msg='数据库操作有错', code=402)
     return ERROR(msg='该用户只能修改自己的密码')
+
+
+# 搜索接口
+@user.route("/search", methods=['GET'])
+def user_search_news():
+    """
+    return: 新闻在数据库中的id  默认10条  列表形式
+    """
+    auth_header = request.headers.get('Authorization')
+    re = Auth.identify(auth_header)
+    input = request.args.get("input", "").strip()
+    if not isinstance(re, dict):
+        return re
+    user_id = re['id']
+    try:
+        search_result = es.search(input)
+        return Success(data={'id_list': search_result})
+    except Exception as e:
+        print(e)
+        return ERROR(msg="搜索失败")
 
 
 # 接入微信  暂时不使用

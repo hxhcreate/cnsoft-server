@@ -24,6 +24,10 @@ class Admin(db.Model):
     username = db.Column(db.String(64), nullable=False, unique=True)
     password = db.Column(db.String(64), nullable=False)
 
+    @staticmethod
+    def select_by_id(id):
+        return Admin.query.filter_by(id=id).first()
+
 
 class User(db.Model):
     __tableName__ = 'user'
@@ -205,6 +209,11 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     head_img_url = db.Column(db.String(255), default="")
     privilege = db.Column(db.String(100), default="")
     union_id = db.Column(db.String(64), default="")
+
+
+# class QQUserInfo(db.Model):
+#     __tableName__ = 'qq_user_info'
+#     id = db.Column(db.Integer, primary_key=True)
 
 # if __name__ == "__main__":
 #     news = News(cate='体育', cate2='台球')

@@ -1,6 +1,6 @@
 import jwt, datetime, time, datetime
 from flask import jsonify
-from ..models import User
+from ..models import User, Admin
 from ..config import SECRET_KEY
 from .message import *
 from ..config.redis import redis_db
@@ -45,19 +45,23 @@ class Auth:
         try:
             # payload = jwt.decode(auth_token, app.config.get('SECRET_KEY'), leeway=datetime.timedelta(seconds=10))
             # 取消过期时间验证
-            payload = jwt.decode(auth_token, SECRET_KEY, options={'verify_exp': True})
+            print("sfdsfdf")
+            payload = jwt.decode(auth_token, SECRET_KEY, options={'verify_exp': False}, algorithms="HS256")
+
             if 'data' in payload and 'id' in payload['data']:
                 return payload
             else:
                 raise jwt.InvalidTokenError
         except jwt.ExpiredSignatureError:
             return 'Token过期'
-        except jwt.InvalidTokenError:
-            return '无效Token'
+        # except jwt.InvalidTokenError:
+        #     return '无效Token'
 
     @staticmethod
-    def authenticate(self, ori_encrypt, password):
-        if User.check_password(password, ori_encrypt):
+    def authenticate(ori_encrypt, password):
+        # if User.check_password(password, ori_encrypt):
+        #     return True
+        if ori_encrypt == password:
             return True
         return False
 
@@ -75,11 +79,20 @@ class Auth:
                 auth_token = auth_tokenArr[1]
                 payload = Auth.decode_auth_token(auth_token)
                 if not isinstance(payload, str):
-                    user = User.select_user_by_id(payload['data']['id'])
-                    if isinstance(user, None):
-                        return ERROR(msg='未找到该用户')
-                    if not redis_db.exists_key('user' + str(user.id)):
-                        return ERROR(msg='用户没有登录')
+                    _id = payload['data']['id']
+                    _type = payload['data']['type']
+                    if _type == "0":
+                        admin = Admin.select_by_id(_id)
+                        if isinstance(admin, None):
+                            return ERROR(msg='未找到该管理员用户')
+                        if not redis_db.exists_key('admin' + str(admin.id)):
+                            return ERROR(msg='管理员没有登录')
+                    elif _type == "1":
+                        user = User.select_user_by_id(_id)
+                        if isinstance(user, None):
+                            return ERROR(msg='未找到该用户')
+                        if not redis_db.exists_key('user' + str(user.id)):
+                            return ERROR(msg='用户没有登录')
                     return payload['data']
                 else:
                     return ERROR(msg=payload)
