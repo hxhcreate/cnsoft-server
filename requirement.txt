@@ -3,4 +3,5 @@ flask~=1.1.4
 synonyms
 pyjwt
 rsa
+elasticsearch
 
