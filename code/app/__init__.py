@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 # from flask_restplus import Api, Resource, fields
 
@@ -16,9 +16,16 @@ def create_app(config_name):
     config_class = config_map.get(config_name)
     app.config.from_object(config_class)  # 从一个类中直接获取配置参数
 
+    # app.secret_key = config_class.SECRET_KEY
     db.init_app(app)  # 实例化数据库
 
     Session(app)  # 将app中的session数据全部读出来
+    @app.route('/')
+    def index():
+        return send_from_directory("../dist", 'index.html')
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory("../dist", 'favicon.ico')
 
     """注册蓝图"""
     from . import admin, user, news, cloudAPI
