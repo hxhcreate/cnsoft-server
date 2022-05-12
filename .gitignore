@@ -145,3 +145,6 @@ code/migrations/
 
 # static
 code/static/
+
+# js
+*.js
