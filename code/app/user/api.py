@@ -92,16 +92,6 @@ def user_logout():
             return ERROR(msg="该用户只能操作自己退出登录")
 
 
-
-# 检查登录状态
-@user.route("/session/<int:id>", methods=['GET'])
-def user_check_session(id):
-    if redis_db.exists_key("user" + str(id)):
-        return jsonify(id=id, code=200)
-    else:
-        return jsonify(msg="用户尚未登录", code=403)
-
-
 # 获取用户信息
 @user.route("/get/info", methods=['GET'])
 def user_get_info():
