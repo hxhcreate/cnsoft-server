@@ -4,7 +4,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from . import db
 import datetime
-
+import re
 from .tools.rsa_tool import rsa_decrypt
 
 default_time_str = "00-01-01 00:00:00"
@@ -16,6 +16,14 @@ def session_commit():
     except SQLAlchemyError as e:
         db.session.rollback()
         print(e)
+
+
+# 建立三张表的记录
+def create_user(username, password):
+    user = User(username=username, password=password)
+    userlog = UserLog(user_id=user.id)
+    User.add(user)
+    UserLog.add(userlog)
 
 
 class Admin(db.Model):
@@ -63,6 +71,9 @@ class User(db.Model):
         super().__init__(**kwargs)
         for k, v in kwargs.items():
             self.k = v
+
+    def __dic__(self):
+        pass
 
     @staticmethod
     def add(user):
@@ -137,6 +148,26 @@ class News(db.Model):
         for k, v in kwargs.items():
             self.k = v
 
+    def to_dict(self):
+        # 用来推荐的，不要改
+        news_dict = {
+            "id": self.id,
+            "title": self.title,
+            "cate": self.cate,
+            "cate2": self.cate2,
+            "address": self.address,
+            "heat": self.heat,
+            "date": self.date,
+            "source": self.source,
+            "keywords": self.keywords,
+            "length": self.length,
+            "views": self.views,
+            "loves": self.loves,
+            "comments": self.comments,
+            "stars": self.stars
+        }
+        return news_dict
+
     @staticmethod
     def add(news):
         db.session.add(news)
@@ -164,15 +195,64 @@ class News(db.Model):
         self.comments += 1
 
 
-# really need it?
+# 用户浏览汇总
 class UserLog(db.Model):  # 单次登录的所有浏览记录
     __tableName__ = 'user_log'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    start_date = db.Column(db.DATE, nullable=False)
-    start_addr = db.Column(db.String(64))
-    stay_time = db.Column(db.Integer, default=0)
-    clicks = db.Column(db.Integer, default=0)
+    user_id = db.Column(db.Integer, nullable=False)
+    rec_news_list = db.Column(db.Text(16777216), default='')  # 曾经推送过哪些新闻，;分割的id
+    liked_news_list = db.Column(db.Text(16777216), default='')
+    stared_news_list = db.Column(db.Text(16777216), default='')
+
+    @staticmethod
+    def add(user_log):
+        db.session.add(user_log)
+        session_commit()
+
+    @staticmethod
+    def parse_news_list(ori_string):
+        string = ori_string
+        return map(lambda item: eval(item), string.split(";"))
+
+    def add_rec_news_list(self, list):
+        list_str = ";".join(map(lambda item: str(item), list))
+        self.rec_news_list = self.rec_news_list + ";" + list_str
+        db.session.add(self)
+        session_commit()
+
+    def add_liked_news_list(self, list):
+        list_str = ";".join(map(lambda item: str(item), list))
+        self.liked_news_list = self.liked_news_list + ";" + list_str
+        db.session.add(self)
+        session_commit()
+
+    def add_stared_news_list(self, list):
+        list_str = ";".join(map(lambda item: str(item), list))
+        self.stared_news_list = self.stared_news_list + ";" + list_str
+        db.session.add(self)
+        session_commit()
+
+
+class UserNewsRate(db.Model):  # 用户评分总记录
+    __tableName__ = 'user_news_rate'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    news_id = db.Column(db.Integer, nullable=False)
+    rate = db.Column(db.Integer, default=0)
+    is_like = db.Column(db.Boolean, default=False)
+    is_favorite = db.Column(db.Boolean, default=False)
+
+    def rating(self):
+        if User2News.is_liked(self.user_id, self.news_id):
+            self.is_like = True
+        if User2News.is_favorite(self.user_id, self.news_id):
+            self.is_favorite = True
+        if self.is_like and self.is_favorite:
+            self.rate = 3
+        elif self.is_like or self.is_favorite:
+            self.rate = 2
+        else:
+            self.rate = 1
 
 
 class User2News(db.Model):  # 单次单条浏览记录
@@ -185,6 +265,20 @@ class User2News(db.Model):  # 单次单条浏览记录
     read_process = db.Column(db.String(5), default="0%")
     is_like = db.Column(db.Boolean, default=False)
     is_favorite = db.Column(db.Boolean, default=False)
+
+    @staticmethod
+    def is_liked(user_id, news_id):
+        for item in User2News.query.filter_by(user_id=user_id, news_id=news_id).all():
+            if item.is_like:
+                return True
+        return False
+
+    @staticmethod
+    def is_favorite(user_id, news_id):
+        for item in User2News.query.filter_by(user_id=user_id, news_id=news_id).all():
+            if item.is_favorite:
+                return True
+        return False
 
 
 class WeUserToken(db.Model):  # 微信用户登录信息
@@ -209,7 +303,6 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     head_img_url = db.Column(db.String(255), default="")
     privilege = db.Column(db.String(100), default="")
     union_id = db.Column(db.String(64), default="")
-
 
 # class QQUserInfo(db.Model):
 #     __tableName__ = 'qq_user_info'

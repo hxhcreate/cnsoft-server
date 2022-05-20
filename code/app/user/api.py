@@ -6,7 +6,7 @@ import json
 from flask import request, jsonify, session
 
 from . import user
-from ..models import User, db, WeUserToken
+from ..models import User, db, WeUserToken, create_user
 from ..tools.decoration import login_required
 
 from ..config import app_id, secret
@@ -27,8 +27,7 @@ def user_register():
     if User.is_exist_user_by_username(username):
         return jsonify(msg='用户名重复', code=403)
     try:
-        user = User(username=username, password=password)
-        User.add(user)
+        create_user(username, password)
         return jsonify(msg="注册成功", code=200)
     except Exception as e:
         print(e)

@@ -3,7 +3,7 @@ import datetime
 from flask import request, jsonify, session
 
 from . import news
-from ..models import News, db, User2News
+from ..models import News, db, User2News, UserNewsRate
 
 
 # 搜索
@@ -75,6 +75,21 @@ def get_news_content():
     return jsonify(msg='参数有错', code=403)
 
 
+@news.route("/rec/circle", methods=['GET'])
+def news_rec_circle():
+    pass
+
+
+@news.route("/rec/window", methods=['GET'])
+def news_rec_window():
+    pass
+
+
+@news.route("/rec/hot", methods=['GET'])
+def news_rec_hot():
+    pass
+
+
 @news.route("/onClick", methods=['GET'])
 def news_click():
     news_id = request.args.get("newsID", "").strip()
@@ -84,10 +99,12 @@ def news_click():
         try:
             news = News.query.filter_by(id=news_id).first()
             news.increase_view()
-            #     创建日志记录
+            #     创建用户日志  和  用户评分表
             user_log = User2News(start_time=datetime.datetime.now(), user_id=user_id, news_id=news_id)
+            user_news_rate = UserNewsRate(user_id=user_id, news_id=news_id)
             db.session.add(news)
             db.session.add(user_log)
+            db.session.add(user_news_rate)
             db.session.commit()
             return jsonify(msg='success', code=200, data={"logID": user_log.id,
                                                           "userID": user_id,
