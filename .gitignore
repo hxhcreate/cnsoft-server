@@ -141,4 +141,10 @@ dmypy.json
 *.zip
 
 # migrate
-migrations/
+code/migrations/
+
+# static
+code/static/
+
+# js
+*.js

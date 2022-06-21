@@ -6,7 +6,7 @@ import json
 from flask import request, jsonify, session
 
 from . import user
-from ..models import User, db, WeUserToken
+from ..models import User, db, WeUserToken, create_user
 from ..tools.decoration import login_required
 
 from ..config import app_id, secret
@@ -27,8 +27,7 @@ def user_register():
     if User.is_exist_user_by_username(username):
         return jsonify(msg='用户名重复', code=403)
     try:
-        user = User(username=username, password=password)
-        User.add(user)
+        create_user(username, password)
         return jsonify(msg="注册成功", code=200)
     except Exception as e:
         print(e)
@@ -63,29 +62,33 @@ def user_login():
 
 @user.route("/logout", methods=['DELETE'])
 def user_logout():
-    id = request.args.get("userID", "").strip()
-    if id:
-        key = "user" + str(id)
-        if session.get(key) is not None:
-            session.pop(key)
-            return jsonify(msg="用户退出登录成功", code=200)
+    """
+    两种角色  id也可以是admin表和user表
+    """
+    auth_header = request.headers.get('Authorization')
+    id = request.args.get("id", "").strip()
+    type = request.args.get("type", "").strip()
+    sign = request.args.get("sign", "").strip()
+    re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
+    if not isinstance(re, dict):
+        return re
+    if re['type'] == '0':
+        if type != '0':
+            redis_db.del_key("user" + str(id))
+            return Success(msg="管理员操作用户退出成功")
         else:
-            return jsonify(msg='用户尚未登录', code=403)
-        # if redis_db.exists_key(key):
-        #     redis_db.del_key(key)
-        #     return jsonify(msg="用户退出登录成功", code=200)
-        # else:
-        #     return jsonify(msg='用户尚未登录', code=403)
-    return jsonify(msg='用户ID不能为空', code=403)
-
-
-# 检查登录状态
-@user.route("/session/<int:id>", methods=['GET'])
-def user_check_session(id):
-    if redis_db.exists_key("user" + str(id)):
-        return jsonify(id=id, code=200)
+            if id == re['id']:
+                redis_db.del_key("admin" + str(id))
+                return Success(msg='管理员退出登录成功')
+            return ERROR(msg='该管理员只能退出自己的账号')
     else:
-        return jsonify(msg="用户尚未登录", code=403)
+        if type == '0':
+            return ERROR("用户不能操作管理员账户")
+        else:
+            if re['id'] == id:
+                redis_db.del_key("user" + str(id))
+                return Success(msg='用户退出登录成功')
+            return ERROR(msg="该用户只能操作自己退出登录")
 
 
 # 获取用户信息
