@@ -12,7 +12,7 @@ from ..tools.decoration import login_required
 from ..config import app_id, secret
 from ..config.redis import redis_db
 from ..tools.auth import Auth
-from ..config.es import es
+# from ..config.es import es
 
 from ..tools.message import *
 
@@ -222,8 +222,9 @@ def user_search_news():
         return re
     user_id = re['id']
     try:
-        search_result = es.search(input)
-        return Success(data={'id_list': search_result})
+        # search_result = es.search(input)
+        # return Success(data={'id_list': search_result})
+        return Success(data={'id_list': 'search_result'})
     except Exception as e:
         print(e)
         return ERROR(msg="搜索失败")
