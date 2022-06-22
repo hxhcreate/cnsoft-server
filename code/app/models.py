@@ -321,6 +321,7 @@ class WeUserToken(db.Model):  # 微信用户登录信息
     code = db.Column(db.String(255), nullable=False, index=True)
     access_token = db.Column(db.String(255), nullable=False, index=True)  # 索引提速
     refresh_token = db.Column(db.String(255), nullable=False, index=True)
+    unionid = db.Column(db.String(255), index=True, nullable=False)
 
 
 class WeUserInfo(db.Model):  # 微信用户个人信息
@@ -335,7 +336,13 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     country = db.Column(db.String(32), default="")
     head_img_url = db.Column(db.String(255), default="")
     privilege = db.Column(db.String(100), default="")
-    union_id = db.Column(db.String(64), default="")
+    unionid = db.Column(db.String(64), default="")
+
+    @orm.reconstructor
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        for k, v in kwargs.items():
+            self.k = v
 
 # class QQUserInfo(db.Model):
 #     __tableName__ = 'qq_user_info'

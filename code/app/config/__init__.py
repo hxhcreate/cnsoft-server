@@ -22,8 +22,8 @@ PUBLIC_KEY = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCBavyp/nXGyAd" \
 SECRET_KEY = "easy reading"
 
 # wechat配置
-app_id = None
-secret = None
+app_id = "wx3d6ebf387ae5fb4f"
+secret = "dab787d612e349dd2fe72eb9246ad2fc"
 
 # redis配置
 REDIS_HOST = '127.0.0.1'

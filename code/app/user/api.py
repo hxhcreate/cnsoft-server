@@ -6,7 +6,8 @@ import json
 from flask import request, jsonify, session
 
 from . import user
-from ..models import User, db, WeUserToken, create_user
+from ..models import User, db, WeUserToken, create_user, WeUserInfo
+from .wechat import *
 from ..tools.decoration import login_required
 
 from ..config import app_id, secret
@@ -234,9 +235,9 @@ def user_search_news():
 
 
 # 接入微信  暂时不使用
-@user.route("/wechat", methods=['POST'])
+@user.route("/wechat", methods=['GET'])
 def user_wechat_api():
-    code = request.json.get("code", "").strip()
+    code = request.args.get("code", "").strip()
     if code:
         try:
             token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
@@ -245,9 +246,13 @@ def user_wechat_api():
                         "code={:s}&" \
                         "grant_type={:s}".format(app_id, secret, code, "authorization_code")
             res_data = json.loads(requests.get(token_url).text)
-            user_kwargs = res_data['openid'], code, res_data["access_token"], res_data["refresh_token"]
-            user_token = WeUserToken(*user_kwargs)
-            db.session.add(user_token)
+            we_user_token = WeUserToken(openid=res_data['openid'], code=code, access_token=res_data['access_token'],
+                                        refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
+            db.session.add(we_user_token)
+            db.session.commit()
+            info_data = get_we_user_info(we_user_token)
+            we_user_info = WeUserInfo(**info_data)
+            db.session.add(we_user_info)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -256,4 +261,12 @@ def user_wechat_api():
         return jsonify(msg="未收到code", code=4000)
 
 
-"""暂时只做新闻相关API  不涉及用户方面的问题"""
+# test just for
+@user.route("/wechat/test", methods=['GET'])
+def test():
+    user_kwargs = "openid", "code", "access", "refresh", "unionid"
+    we_user_token = WeUserToken(openid="openid", code="code", access_token="access", refresh_token="refresh",
+                                unionid="unionid")
+    db.session.add(we_user_token)
+    db.session.commit()
+    return jsonify(msg="未收到code", code=4000)
