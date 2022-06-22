@@ -195,6 +195,37 @@ class News(db.Model):
         self.comments += 1
 
 
+# 暂时用于推荐算法
+class UserNewsClass(db.Model):
+    __tableName__ = 'user_news_class'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    fiance = db.Column(db.Integer, default=0)
+    health_care = db.Column(db.Integer, default=0)
+    education = db.Column(db.Integer, default=0)
+    tech = db.Column(db.Integer, default=0)
+    energy = db.Column(db.Integer, default=0)
+    transport = db.Column(db.Integer, default=0)
+    architecture = db.Column(db.Integer, default=0)
+    sports = db.Column(db.Integer, default=0)
+    military = db.Column(db.Integer, default=0)
+    manufacture = db.Column(db.Integer, default=0)
+    ecology = db.Column(db.Integer, default=0)
+    travel = db.Column(db.Integer, default=0)
+    restaurant = db.Column(db.Integer, default=0)
+    agf = db.Column(db.Integer, default=0)
+    hot_issue = db.Column(db.Integer, default=0)
+    social = db.Column(db.Integer, default=0)
+    entertainment = db.Column(db.Integer, default=0)
+    info = db.Column(db.Integer, default=0)
+    trans_security = db.Column(db.Integer, default=0)
+    social_security = db.Column(db.Integer, default=0)
+    disaster = db.Column(db.Integer, default=0)
+
+    def getItem(self, name):
+        self.name
+
+
 # 用户浏览汇总
 class UserLog(db.Model):  # 单次登录的所有浏览记录
     __tableName__ = 'user_log'
@@ -233,6 +264,7 @@ class UserLog(db.Model):  # 单次登录的所有浏览记录
         session_commit()
 
 
+# 暂时不使用评分表
 class UserNewsRate(db.Model):  # 用户评分总记录
     __tableName__ = 'user_news_rate'
     id = db.Column(db.Integer, primary_key=True)
@@ -247,11 +279,12 @@ class UserNewsRate(db.Model):  # 用户评分总记录
             self.is_like = True
         if User2News.is_favorite(self.user_id, self.news_id):
             self.is_favorite = True
-        if self.is_like and self.is_favorite:
+        if self.is_like and self.is_favorite:  # 浏览且duoble
             self.rate = 3
-        elif self.is_like or self.is_favorite:
+        elif self.is_like or self.is_favorite:  # 浏览且点赞或者浏览且收藏
             self.rate = 2
-        else:
+        else:  # 推荐但未
+            # 浏览
             self.rate = 1
 
 
@@ -269,14 +302,14 @@ class User2News(db.Model):  # 单次单条浏览记录
     @staticmethod
     def is_liked(user_id, news_id):
         for item in User2News.query.filter_by(user_id=user_id, news_id=news_id).all():
-            if item.is_like:
+            if item is not None and item.is_like:
                 return True
         return False
 
     @staticmethod
     def is_favorite(user_id, news_id):
         for item in User2News.query.filter_by(user_id=user_id, news_id=news_id).all():
-            if item.is_favorite:
+            if item is not None and item.is_favorite:
                 return True
         return False
 

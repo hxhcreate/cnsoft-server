@@ -1,18 +1,10 @@
 import datetime
-
+import math
 from flask import request, jsonify, session
 
 from . import news
-from ..models import News, db, User2News, UserNewsRate
-
-
-# 搜索
-@news.route("/search", methods=['GET'])
-def news_search():
-    search_input = request.args.get("input", "").strip()
-    if search_input is not "":
-        return
-    return
+from ..models import News, db, User2News, UserNewsRate, UserNewsClass
+from sqlalchemy.sql import func
 
 
 @news.route("/add", methods=['POST'])
@@ -75,9 +67,27 @@ def get_news_content():
     return jsonify(msg='参数有错', code=403)
 
 
+# 基本刷新推荐
 @news.route("/rec/circle", methods=['GET'])
 def news_rec_circle():
-    pass
+    cate_list = ['fiance', 'health_care', 'education', 'tech', 'energy', 'transport',
+                 'architecture', 'sports', 'military', ' manufacture', 'ecology',
+                 'travel', 'restaurant', 'agf', 'hot_issue', 'social', 'entertainment',
+                 'info', 'trans_security', 'social_security', 'disaster']
+
+    def calc_p(num):
+        return math.exp(num - 2) / (math.exp(-1) - math.exp(-2))
+
+    user_id = request.args.get("userID", "").strip()
+    nums = request.args.get("userID", "").strip()
+    user_news_class = UserNewsClass.query.filter_by(user_id=user_id).first()
+    p_list = [calc_p(user_news_class.getItem(cate)) for cate in cate_list]
+    cate = cate_list[cate_list.index(max(p_list))]
+    news = News.query.filter_by(cate2=cate).order_by(func.random()).limit(nums).all()
+    news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
+                  "digest": new.digest, "Hpic": new.hpic,
+                  "heat": new.heat, "tag": new.keywords} for new in news]
+    return jsonify(msg='获取刷新推荐新闻列表成功', code=200, data={"nums": nums, "news_list": news_list})
 
 
 @news.route("/rec/window", methods=['GET'])
@@ -99,9 +109,12 @@ def news_click():
         try:
             news = News.query.filter_by(id=news_id).first()
             news.increase_view()
-            #     创建用户日志  和  用户评分表
+            #     创建用户日志  和  用户评分表  和 用户新闻分类个数表
             user_log = User2News(start_time=datetime.datetime.now(), user_id=user_id, news_id=news_id)
             user_news_rate = UserNewsRate(user_id=user_id, news_id=news_id)
+            user_news_class = UserNewsClass(user_id=user_id)
+            user_news_class.getItem += 1
+            db.session.add(user_news_class)
             db.session.add(news)
             db.session.add(user_log)
             db.session.add(user_news_rate)

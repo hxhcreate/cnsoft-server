@@ -76,8 +76,6 @@ def admin_check_session(username):
         return jsonify(msg="管理员尚未登录", code=4000)
 
 
-
-
 @admin.route("/code", methods=['GET'])
 def admin_code():
     # img = base64.encodebytes(open(r'D:\@project\2022-3cnsoft\server\code\dist\favicon.ico', 'rb').read()).decode()

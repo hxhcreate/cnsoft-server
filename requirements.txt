@@ -319,3 +319,14 @@ yarl @ file:///tmp/build/80754af9/yarl_1606939947528/work
 zict==2.0.0
 zipp @ file:///opt/conda/conda-bld/zipp_1641824620731/work
 zope.interface @ file:///tmp/build/80754af9/zope.interface_1625036153595/work
+
+requests~=2.27.1
+elasticsearch~=7.6.0
+flask~=2.1.1
+sqlalchemy~=1.4.32
+pyjwt~=2.3.0
+rsa~=4.8
+numpy~=1.22.3
+redis~=3.5.3
+scrapy~=2.6.1
+itemadapter~=0.5.0
