@@ -1,8 +1,8 @@
 from app import create_app
 from app import db
 
-app = create_app("develop")  # 生产环境
-# app = create_app("product")  线上环境
+# app = create_app("develop")  # 生产环境
+app = create_app("product")  #线上环境
 
 from flask_script import Manager  # 追踪数据库的更新
 from flask_migrate import Migrate, MigrateCommand  # 管理数据库需要的一些脚本

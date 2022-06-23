@@ -28,6 +28,7 @@ class ProductionConfig(Config):
     """生产环境配置信息"""
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:123456@localhost:3306/2022soft'
     # SESSION_REDIS = redis.Redis(host='127.0.0.1', port=6379, db=1)
+    DEBUG = False
 
 
 config_map = {

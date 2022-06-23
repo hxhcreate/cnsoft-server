@@ -8,4 +8,6 @@ requests~=2.27.1
 synonyms
 pyjwt~=2.3.0
 rsa~=4.8
-
+gunicorn~=20.1.0
+numpy~=1.23.0
+pandas~=1.4.3
