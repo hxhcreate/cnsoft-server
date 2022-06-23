@@ -128,4 +128,3 @@ dependencies:
     - mysqlclient==2.1.0
     - pyaudio==0.2.11
     - pyrsistent==0.18.1
-prefix: D:\Anaconda\envs\2022soft-server
