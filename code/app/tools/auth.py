@@ -8,7 +8,7 @@ from ..config.redis import redis_db
 
 class Auth:
     @staticmethod
-    def encode_auth_token(user_id, login_time, platform, type):
+    def encode_auth_token(user_id, login_time):
         """
         生成认证Token
         :param user_id: int
@@ -22,9 +22,7 @@ class Auth:
                 'iss': 'ken',
                 'data': {
                     'id': user_id,
-                    'logtime': login_time,
-                    "pt": platform,
-                    "type": type
+                    'logtime': login_time
                 }
             }
             return jwt.encode(
@@ -80,19 +78,11 @@ class Auth:
                 payload = Auth.decode_auth_token(auth_token)
                 if not isinstance(payload, str):
                     _id = payload['data']['id']
-                    _type = payload['data']['type']
-                    if _type == "0":
-                        admin = Admin.select_by_id(_id)
-                        if isinstance(admin, None):
-                            return ERROR(msg='未找到该管理员用户')
-                        if not redis_db.exists_key('admin' + str(admin.id)):
-                            return ERROR(msg='管理员没有登录')
-                    elif _type == "1":
-                        user = User.select_user_by_id(_id)
-                        if isinstance(user, None):
-                            return ERROR(msg='未找到该用户')
-                        if not redis_db.exists_key('user' + str(user.id)):
-                            return ERROR(msg='用户没有登录')
+                    user = User.select_user_by_id(_id)
+                    if isinstance(user, None):
+                        return ERROR(msg='未找到该用户')
+                    if not redis_db.exists_key('user' + str(user.id)):
+                        return ERROR(msg='用户没有登录')
                     return payload['data']
                 else:
                     return ERROR(msg=payload)

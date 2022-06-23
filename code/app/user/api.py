@@ -47,10 +47,9 @@ def user_login():
     if user is None:
         return jsonify(msg='未查找到该用户', code=402)
 
-    # 引入Auth板块
     if Auth.authenticate(ori_password, user.password):
         time_stamp = int(time.time())
-        token = Auth.encode_auth_token(user.id, time_stamp, "pure", user.type)
+        token = Auth.encode_auth_token(user.id, time_stamp)
         print(token)
         redis_db.handle_redis_token("user" + str(user.id), token)
         return Success(
@@ -59,6 +58,105 @@ def user_login():
              "username": user.username, "id": user.id})
     else:
         return jsonify(msg='账号或者密码错误', code=403)
+
+
+@user.route('/login/grant', methods=['GET'])
+def user_grant():
+    userid = request.json.get('userid', '').strip()
+    username = request.json.get("username", "").strip()
+    password = request.json.get("password", "").strip()
+    if userid and username and password:
+        user = User.select_user_by_id(userid)
+        user.username = username
+        user.password = password
+        User.add(user)
+        return jsonify(msg="用户密码设置成功", status=200)
+    else:
+        return jsonify(msg="参数不全", status=4000)
+
+
+# 接入获取微信授权
+# 根据参数判断是授权还是注册
+@user.route("/login/wechat", methods=['GET'])
+def user_wechat_login():
+    code = request.args.get("code", "").strip()
+    auth_header = request.headers.get('Authorization').strip()
+    user_id = request.args.get("userid", "").strip()
+    if code:
+        try:
+            token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
+                        "appid={:s}&" \
+                        "secret={:s}&" \
+                        "code={:s}&" \
+                        "grant_type={:s}".format(app_id, secret, code, "authorization_code")
+            res_data = json.loads(requests.get(token_url).text)
+            # 判断用户是否在另一个平台已经注册过了
+            # 已经授权过，则不再获取token等
+            if not WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
+                we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],
+                                            refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
+                db.session.add(we_user_token)
+                db.session.commit()
+                info_data = get_we_user_info(we_user_token)
+                we_user_info = WeUserInfo(**info_data)
+                db.session.add(we_user_info)
+                db.session.commit()
+                print("we_user创建完成")
+                if auth_header and user_id:
+                    re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
+                    if not isinstance(re, dict):
+                        return re
+                    print("鉴权成功")
+                    user = User.select_user_by_id(user_id)
+                    user.wechat_id = res_data['unionid']
+                    user.gender = we_user_info['sex']
+                    user.city = we_user_info['city']
+                    user.province = we_user_info['province']
+                    user.country = we_user_info['country']
+                    user.avatar = we_user_info['headimgurl']
+                    user.nickname = we_user_info['nickname']
+                    User.add(user)
+                    return jsonify(msg="通过wechat授权user成功", code=200, data={'userid': user.id})
+                else:
+                    user = User(wechat_id=res_data['unionid'])  # 创建新的用户
+                    time_stamp = int(time.time())
+                    token = Auth.encode_auth_token(user.id, time_stamp)
+                    print(token)
+                    redis_db.handle_redis_token("user" + str(user.id), token)
+                    user = User.select_user_by_id(user_id)
+                    user.wechat_id = res_data['unionid']
+                    user.gender = we_user_info['sex']
+                    user.city = we_user_info['city']
+                    user.province = we_user_info['province']
+                    user.country = we_user_info['country']
+                    user.avatar = we_user_info['headimgurl']
+                    user.nickname = we_user_info['nickname']
+                    User.add(user)
+                    return jsonify(msg="通过wechat创建新的user", code=200, data={'userid': user.id,
+                                                                           "token": token})
+            else:
+                return jsonify(msg="we_user已经授权过", code=200, data={'unionid': res_data['unionid']})
+        except Exception as e:
+            print(e)
+            return jsonify(mgs="数据库操作有错", code=4001)
+    else:
+        return jsonify(msg="未收到code", code=4000)
+
+
+# @user.route("/grant/wechat", methods=['GET'])
+# def user_wechat_grant():
+#     code = request.args.get("code", "").strip()
+#     auth_header = request.headers.get('Authorization').strip()
+#     user_id = request.args.get("userid", "").strip()
+#     if auth_header and user_id:
+#         wechat_grant(code)
+#     else:
+#         return jsonify(msg="授权请提供token和id", status=4000)
+
+
+@user.route("/login/miniprogram", methods=['GET'])
+def user_miniprogram_login():
+    return
 
 
 @user.route("/logout", methods=['DELETE'])
@@ -234,39 +332,6 @@ def user_search_news():
         return ERROR(msg="搜索失败")
 
 
-# 接入微信
-@user.route("/wechat/login", methods=['GET'])
-def user_wechat_api():
-    code = request.args.get("code", "").strip()
-    if code:
-        try:
-            token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
-                        "appid={:s}&" \
-                        "secret={:s}&" \
-                        "code={:s}&" \
-                        "grant_type={:s}".format(app_id, secret, code, "authorization_code")
-            res_data = json.loads(requests.get(token_url).text)
-            # 判断用户是否在另一个平台已经注册过了
-            # 已经授权过，则不再获取token等
-            if not WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
-                we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],
-                                            refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
-                db.session.add(we_user_token)
-                db.session.commit()
-                info_data = get_we_user_info(we_user_token)
-                we_user_info = WeUserInfo(**info_data)
-                db.session.add(we_user_info)
-                db.session.commit()
-                return jsonify(msg="创建授权新we_user", code=200, data={'unionid': res_data['unionid']})
-            else:
-                return jsonify(msg="we_user已经授权", code=200, data={'unionid': res_data['unionid']})
-        except Exception as e:
-            print(e)
-            return jsonify(mgs="数据库操作有错", code=4001)
-    else:
-        return jsonify(msg="未收到code", code=4000)
-
-
 @user.route("/wechat/userinfo", methods=['GET'])
 def get_we_user_info():
     unionid = request.args.get('unionid', "").strip()
@@ -278,6 +343,7 @@ def get_we_user_info():
             return jsonify(mgs="数据库操作有错", code=4001)
     else:
         return jsonify(msg="未收到unionid", code=4000)
+
 
 # test just for
 @user.route("/wechat/test", methods=['GET'])

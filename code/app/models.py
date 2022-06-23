@@ -40,19 +40,19 @@ class Admin(db.Model):
 class User(db.Model):
     __tableName__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), nullable=False, unique=True)
-    password = db.Column(db.String(64), nullable=False)
-    cate = db.Column(db.Enum("pure", "wechat", "phone"), default="pure")
-    type = db.Column(db.Enum("0", "1"), default='1')  # 0 代表的是管理员
+    username = db.Column(db.String(64), unique=True)
+    password = db.Column(db.String(64))
     nickname = db.Column(db.String(64), default="")
     avatar = db.Column(db.String(200), default='')  # 头像图片的url
     gender = db.Column(db.Enum("male", "female"), default='')
     age = db.Column(db.Integer, default=0)
+    country = db.Column(db.String(64), default='')
+    province = db.Column(db.String(64), default='')
     city = db.Column(db.String(64), default='')
     job = db.Column(db.String(64), default='')
     """其他登录方式"""
     phone = db.Column(db.String(11), default='')
-    wechat_id = db.Column(db.String(64), default='')
+    wechat_id = db.Column(db.String(64), default='', unique=True)  # 对应微信unionid
 
     """统计信息"""
     exp = db.Column(db.Integer, default=0)
@@ -328,11 +328,11 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     id = db.Column(db.Integer, primary_key=True)
     openid = db.Column(db.String(255), nullable=False)
     nickname = db.Column(db.String(64), nullable=False)
-    sex = db.Column(db.Enum("1", "2"), default="")
+    sex = db.Column(db.Integer, default=1)
     province = db.Column(db.String(32), default="")
     city = db.Column(db.String(32), default="")
     country = db.Column(db.String(32), default="")
-    head_img_url = db.Column(db.String(512), default="")
+    headimgurl = db.Column(db.String(512), default="")
     privilege = db.Column(db.String(512), default="")
     unionid = db.Column(db.String(255), nullable=False, unique=True)
 
