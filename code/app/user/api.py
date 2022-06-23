@@ -143,52 +143,41 @@ def user_wechat_login():
         return jsonify(msg="未收到code", code=4000)
 
 
-# @user.route("/grant/wechat", methods=['GET'])
-# def user_wechat_grant():
-#     code = request.args.get("code", "").strip()
-#     auth_header = request.headers.get('Authorization').strip()
-#     user_id = request.args.get("userid", "").strip()
-#     if auth_header and user_id:
-#         wechat_grant(code)
-#     else:
-#         return jsonify(msg="授权请提供token和id", status=4000)
-
-
 @user.route("/login/miniprogram", methods=['GET'])
 def user_miniprogram_login():
     return
 
 
-@user.route("/logout", methods=['DELETE'])
-def user_logout():
-    """
-    两种角色  id也可以是admin表和user表
-    """
-    auth_header = request.headers.get('Authorization')
-    id = request.args.get("id", "").strip()
-    type = request.args.get("type", "").strip()
-    sign = request.args.get("sign", "").strip()
-    re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == '0':
-        if type != '0':
-            redis_db.del_key("user" + str(id))
-            return Success(msg="管理员操作用户退出成功")
-        else:
-            if id == re['id']:
-                redis_db.del_key("admin" + str(id))
-                return Success(msg='管理员退出登录成功')
-            return ERROR(msg='该管理员只能退出自己的账号')
-    else:
-        if type == '0':
-            return ERROR("用户不能操作管理员账户")
-        else:
-            if re['id'] == id:
-                redis_db.del_key("user" + str(id))
-                return Success(msg='用户退出登录成功')
-            return ERROR(msg="该用户只能操作自己退出登录")
-
+# @user.route("/logout", methods=['DELETE'])
+# def user_logout():
+#     """
+#     两种角色  id也可以是admin表和user表
+#     """
+#     auth_header = request.headers.get('Authorization')
+#     id = request.args.get("id", "").strip()
+#     type = request.args.get("type", "").strip()
+#     sign = request.args.get("sign", "").strip()
+#     re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
+#     if not isinstance(re, dict):
+#         return re
+#     if re['type'] == '0':
+#         if type != '0':
+#             redis_db.del_key("user" + str(id))
+#             return Success(msg="管理员操作用户退出成功")
+#         else:
+#             if id == re['id']:
+#                 redis_db.del_key("admin" + str(id))
+#                 return Success(msg='管理员退出登录成功')
+#             return ERROR(msg='该管理员只能退出自己的账号')
+#     else:
+#         if type == '0':
+#             return ERROR("用户不能操作管理员账户")
+#         else:
+#             if re['id'] == id:
+#                 redis_db.del_key("user" + str(id))
+#                 return Success(msg='用户退出登录成功')
+#             return ERROR(msg="该用户只能操作自己退出登录")
+#
 
 # 获取用户信息
 @user.route("/get/info", methods=['GET'])
@@ -199,7 +188,7 @@ def user_get_info():
     re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
     if not isinstance(re, dict):
         return re
-    if re['type'] == "0" or id == re['id']:
+    if id == re['id']:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -222,7 +211,7 @@ def user_get_stats_info():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if re['type'] == "0" or id == re['id']:
+    if id == re['id']:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -247,7 +236,7 @@ def user_info_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if re['type'] == "0" or re['id'] == id:
+    if  re['id'] == id:
         user = User.select_user_by_id(id)
         if user is None:
             return jsonify(msg='未查找到该用户', code=402)
@@ -273,7 +262,7 @@ def user_avatar_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if re['type'] == "0" or id == re['id']:
+    if  id == re['id']:
         try:
             user_num = User.query.filter_by(id=id).first().update({"avatar": new_avatar_url})
             db.session.commit()
@@ -292,7 +281,7 @@ def user_pwd_update():
     re = Auth.identify(auth_header)
     if not isinstance(re, dict):
         return re
-    if re['type'] == '0' or id == re['id']:
+    if id == re['id']:
         old_pwd = request.json.get('oldpwd', "").strip()
         new_pwd = request.json.get('newpad', "").strip()
         sign = request.args.get("sign", "").strip()
