@@ -272,7 +272,7 @@ def get_we_user_info():
     unionid = request.args.get('unionid', "").strip()
     if unionid:
         try:
-
+            pass
         except Exception as e:
             print(e)
             return jsonify(mgs="数据库操作有错", code=4001)
