@@ -4,7 +4,8 @@ pymysql~=1.0.2
 redis~=3.5.3
 flask-sqlalchemy~=2.5.1
 elasticsearch~=7.6.0
+requests~=2.27.1
 synonyms
-pyjwt
+pyjwt~=2.3.0
 rsa~=4.8
 

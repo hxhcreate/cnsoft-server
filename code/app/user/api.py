@@ -267,7 +267,7 @@ def user_wechat_api():
         return jsonify(msg="未收到code", code=4000)
 
 
-@user.route("/wechat/userinfo", mehthods=['GET'])
+@user.route("/wechat/userinfo", methods=['GET'])
 def get_we_user_info():
     unionid = request.args.get('unionid', "").strip()
     if unionid:
