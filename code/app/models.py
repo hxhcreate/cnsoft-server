@@ -317,37 +317,27 @@ class User2News(db.Model):  # 单次单条浏览记录
 class WeUserToken(db.Model):  # 微信用户登录信息
     __tableName__ = 'we_user_token'
     id = db.Column(db.Integer, primary_key=True)
-    openid = db.Column(db.String(255), nullable=False, unique=True)
-    code = db.Column(db.String(255), nullable=False, index=True)
+    openid = db.Column(db.String(255), nullable=False, index=True)
     access_token = db.Column(db.String(255), nullable=False, index=True)  # 索引提速
     refresh_token = db.Column(db.String(255), nullable=False, index=True)
-    unionid = db.Column(db.String(255), index=True, nullable=False)
+    unionid = db.Column(db.String(255), index=True, nullable=False, unique=True)
 
 
 class WeUserInfo(db.Model):  # 微信用户个人信息
     __tableName__ = 'we_user_info'
     id = db.Column(db.Integer, primary_key=True)
-    # user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)  # 外键到user_id
-    openid = db.Column(db.String(255), nullable=False, unique=True)
+    openid = db.Column(db.String(255), nullable=False)
     nickname = db.Column(db.String(64), nullable=False)
     sex = db.Column(db.Enum("1", "2"), default="")
     province = db.Column(db.String(32), default="")
     city = db.Column(db.String(32), default="")
     country = db.Column(db.String(32), default="")
-    head_img_url = db.Column(db.String(255), default="")
-    privilege = db.Column(db.String(100), default="")
-    unionid = db.Column(db.String(64), default="")
+    head_img_url = db.Column(db.String(512), default="")
+    privilege = db.Column(db.String(512), default="")
+    unionid = db.Column(db.String(255), nullable=False, unique=True)
 
     @orm.reconstructor
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for k, v in kwargs.items():
             self.k = v
-
-# class QQUserInfo(db.Model):
-#     __tableName__ = 'qq_user_info'
-#     id = db.Column(db.Integer, primary_key=True)
-
-# if __name__ == "__main__":
-#     news = News(cate='体育', cate2='台球')
-#     news.add_news()
