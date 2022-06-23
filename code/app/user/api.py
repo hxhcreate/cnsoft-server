@@ -234,7 +234,7 @@ def user_search_news():
         return ERROR(msg="搜索失败")
 
 
-# 接入微信  暂时不使用
+# 接入微信
 @user.route("/wechat", methods=['GET'])
 def user_wechat_api():
     code = request.args.get("code", "").strip()
