@@ -82,16 +82,75 @@ def user_login():
         return jsonify(msg='kernel error', code=4000)
 
 
+# 用户登录通过微信，只能是新用户
 @user.route("/login/wechat", methods=['GET'])
 def user_wechat_login():
     code = request.args.get("code", "").strip()
-    auth_header = request.headers.get('Authorization').strip()
+    token = request.cookies.get("cookies", "").strip()
     try:
-        token = grant_wechat(code, auth_header)
-        return jsonify(msg="success", status=200, data={"token": token})
+        token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
+                    "appid={:s}&" \
+                    "secret={:s}&" \
+                    "code={:s}&" \
+                    "grant_type={:s}".format(app_id, secret, code, "authorization_code")
+        res_data = json.loads(requests.get(token_url).text)
+        wechatid = res_data['unionid']
+        if WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
+            return jsonify(msg="alreay granted via wechat", code=4000)
+        we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],
+                                    refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
+        db.session.add(we_user_token)
+        db.session.commit()
+        info_data = get_we_user_info(we_user_token)
+        we_user_info = WeUserInfo(**info_data)
+        db.session.add(we_user_info)
+        db.session.commit()
+        user = User(wechatid=wechatid)
+        User.add(user)
+        resp = make_response(jsonify(msg='login with wechat!', code=200))
+        new_token = Token(user.id, user.username, user.wechatid).deliver_token()
+        resp.set_cookie("cookies", new_token)
+        resp.status = 200
+        return resp
     except Exception as e:
         print(e)
-        return jsonify(msg='wechat grant error', code=4000)
+        return jsonify(msg='kernel error', code=4000)
+
+
+# 用户授权，已经有Pure的用户
+@user.route("/grant/wechat", methods=['GET'])
+def user_wechat_grant():
+    code = request.args.get("code", "").strip()
+    token = request.cookies.get("cookies", "").strip()
+    try:
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
+
+        token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
+                    "appid={:s}&" \
+                    "secret={:s}&" \
+                    "code={:s}&" \
+                    "grant_type={:s}".format(app_id, secret, code, "authorization_code")
+        res_data = json.loads(requests.get(token_url).text)
+        wechatid = res_data['unionid']
+        if WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
+            return jsonify(msg="alreay granted via wechat", code=4000)
+
+        user: User = User.select_user_by_username(token_user_id)
+        user.wechatid = wechatid
+        User.add(user)
+        resp = make_response(jsonify(msg='grand pure user with wechat!', code=200))
+        new_token = Token(user.id, user.username, user.wechatid).deliver_token()
+        resp.set_cookie("cookies", new_token)
+        resp.status = 200
+        return resp
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
 
 
 @user.route("/logout", methods=['GET'])
