@@ -8,7 +8,7 @@ from app import db  # 引入的是manage中已经实例化app的db
 from app import create_app
 from app.models import News
 
-app = create_app("develop")  # 生产环境
+app = create_app("product")  
 
 
 def insertManyNews(file_path):
