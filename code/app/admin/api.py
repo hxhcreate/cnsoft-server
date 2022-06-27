@@ -2,19 +2,37 @@ import time
 from datetime import datetime
 import base64
 
-from flask import request, jsonify, session, url_for, render_template, send_from_directory
+from flask import Flask, request, jsonify, session, url_for, render_template, send_from_directory
 
 from . import admin
 from ..models import Admin, db
+from random import randrange
+
+from pyecharts import options as opts
+from pyecharts.charts import Bar
+from .gen_graph import bar_datazoom_slider, line_markpoint, pie_rosetype, grid_mutil_yaxis, liquid_data_precision, table_base
 
 """管理员接口"""
 
 
 @admin.route("/", methods=['GET'])
 def admin_index():
-    return send_from_directory("../dist", 'index.html')
+    return render_template("index.html")
+    
+@admin.route("/bar")
+def get_bar():
+    c = bar_datazoom_slider().dump_options()
+    return c
+@admin.route("/grid")
+def get_grid():
+    c = grid_mutil_yaxis().dump_options()
+    return c
+@admin.route("/pie")
+def get_pie():
+    c = pie_rosetype().dump_options()
+    return c
 
-
+# 用新方案，没有登录系统的话，以下都没用
 @admin.route("/register", methods=['POST'])
 def admin_register():
     try:
@@ -86,3 +104,4 @@ def admin_code():
 @admin.route("/static/<path:path>", methods=['GET'])
 def admin_static(path):
     return send_from_directory('../dist/static/' + '/'.join(path.split('/')[0:-1]), path.split('/')[-1])
+

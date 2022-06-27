@@ -11,7 +11,7 @@ db = SQLAlchemy()
 
 def create_app(config_name):
     # config_name: 选择环境的参数
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder='admin/templates')
 
     config_class = config_map.get(config_name)
     app.config.from_object(config_class)  # 从一个类中直接获取配置参数
