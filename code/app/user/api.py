@@ -1,216 +1,144 @@
-import time
-import datetime
-import requests
-import json
-
-from flask import request, jsonify, session
-
-from . import user
-from ..models import User, db, WeUserToken, create_user, WeUserInfo
-from .wechat import *
-from ..tools.decoration import login_required
-
-from ..config import app_id, secret
-from ..config.redis import redis_db
 from ..tools.auth import Auth
-# from ..config.es import es
 
 from ..tools.message import *
 
+# 用户管理api
+from .user_manage import *
 
-@user.route("/register", methods=['POST'])
-def user_register():
-    username = request.json.get("username", "").strip()
-    password = request.json.get("password", "").strip()
-    sign = request.json.get("sign", "").strip()
-    if not all([username, password]):
-        return jsonify(msg='用户和密码不能为空', code=403)
-    if User.is_exist_user_by_username(username):
-        return jsonify(msg='用户名重复', code=403)
+@user.route("/logout", methods=['GET'])
+def user_logout():
     try:
-        create_user(username, password)
-        return jsonify(msg="注册成功", code=200)
+        userID = int(request.args.get("userID", '').strip())
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_user_id = Token.get_token_value(token)[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+
+        Token.delete_token(token)
+        resp = make_response(jsonify(msg="user logout, success!", code=200))
+        resp.set_cookie("cookies", "")
+        resp.status = 200
+        return resp
     except Exception as e:
         print(e)
-        return jsonify(msg="数据库操作有错", code=402)
-
-
-@user.route("/login", methods=['POST'])
-def user_login():
-    username = request.json.get("username", "").strip()
-    ori_password = request.json.get("password", "").strip()
-    sign = request.json.get("sign", "").strip()
-
-    if not all([username, ori_password]):
-        return jsonify(msg='用户和密码不能为空', code=403)
-    user = User.select_user_by_username(username)
-    if user is None:
-        return jsonify(msg='未查找到该用户', code=402)
-
-    # 引入Auth板块
-    if Auth.authenticate(ori_password, user.password):
-        time_stamp = int(time.time())
-        token = Auth.encode_auth_token(user.id, time_stamp, "pure", user.type)
-        print(token)
-        redis_db.handle_redis_token("user" + str(user.id), token)
-        return Success(
-            {"token": token, "logtime": time.strftime("%Y-%m-%d %H:%M:%S",
-                                                      time.localtime(time_stamp)),
-             "username": user.username, "id": user.id})
-    else:
-        return jsonify(msg='账号或者密码错误', code=403)
-
-
-@user.route("/logout", methods=['DELETE'])
-def user_logout():
-    """
-    两种角色  id也可以是admin表和user表
-    """
-    auth_header = request.headers.get('Authorization')
-    id = request.args.get("id", "").strip()
-    type = request.args.get("type", "").strip()
-    sign = request.args.get("sign", "").strip()
-    re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == '0':
-        if type != '0':
-            redis_db.del_key("user" + str(id))
-            return Success(msg="管理员操作用户退出成功")
-        else:
-            if id == re['id']:
-                redis_db.del_key("admin" + str(id))
-                return Success(msg='管理员退出登录成功')
-            return ERROR(msg='该管理员只能退出自己的账号')
-    else:
-        if type == '0':
-            return ERROR("用户不能操作管理员账户")
-        else:
-            if re['id'] == id:
-                redis_db.del_key("user" + str(id))
-                return Success(msg='用户退出登录成功')
-            return ERROR(msg="该用户只能操作自己退出登录")
+        return jsonify(msg="kernel error", code=4000)
 
 
 # 获取用户信息
 @user.route("/get/info", methods=['GET'])
 def user_get_info():
-    auth_header = request.headers.get('Authorization')
-    id = request.args.get("id", "").strip()
-    sign = request.args.get("sign", "").strip()
-    re = Auth.identify(auth_header)  # 正确就是字典  不正确就是一个jsonify
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == "0" or id == re['id']:
-        user = User.select_user_by_id(id)
-        if user is None:
-            return jsonify(msg='未查找到该用户', code=402)
-        result = {"id": user.id, "cate": user.cate,
-                  "username": user.username, "nickname": user.nickname,
-                  "avatar": user.avatar, "gender": user.gender,
-                  "city": user.city, "job": user.job,
-                  "age": user.age}
-        return jsonify(code=200, msg='获取用户信息成功', data=result)
-    else:
-        return jsonify(msg='该用户只能修改自己的用户信息', code=403)
+    try:
+        userID = int(request.args.get("userID", '').strip())
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_user_id = Token.get_token_value(token)[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
 
-
-# 获取用户平台信息
-@user.route("/get/info/detail", methods=['GET'])
-def user_get_stats_info():
-    id = request.args.get("id", "").strip()
-    sign = request.args.get("sign", "").strip()
-    auth_header = request.headers.get('Authorization')
-    re = Auth.identify(auth_header)
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == "0" or id == re['id']:
-        user = User.select_user_by_id(id)
-        if user is None:
-            return jsonify(msg='未查找到该用户', code=402)
-        result = {"id": user.id, "phone": user.phone,
-                  "wechatID": user.wechat_id, "exp": user.exp,
-                  "level": user.level, "regTime": user.reg_time,
-                  "days": (datetime.datetime.now() - user.reg_time).days}
-        return jsonify(code=200, msg='获取用户平台信息成功', data=result)
-    else:
-        return jsonify(msg='该用户只能获取自己的信息', code=403)
+        user = User.select_user_by_id(userID)
+        data = user.get_specific_info("username", "nickname", "avatar",
+                                      "gender", "city", "job", "age", "province",
+                                      "country")
+        resp = make_response(jsonify(msg="get user info, success", code=200, data=data))
+        resp.set_cookie("cookies", token)
+        resp.status = 200
+        return resp
+    except Exception as e:
+        print(e)
+        return jsonify(msg="kernel error", code=4000)
 
 
 # 基本信息修改
 @user.route("/update/info/", methods=['POST'])
 def user_info_update():
-    id = request.json.get("id", "").strip()
-    sign = request.json.get("sign", "").strip()
-    info_dict = request.get_json()
-    info_dict.pop("sign")
-    info_dict.pop('id')
-    auth_header = request.headers.get('Authorization')
-    re = Auth.identify(auth_header)
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == "0" or re['id'] == id:
-        user = User.select_user_by_id(id)
-        if user is None:
-            return jsonify(msg='未查找到该用户', code=402)
-        try:
-            user.update_user_info(info_dict)
-            return jsonify(msg="修改基本成功", code=200)
-        except Exception as e:
-            print(e)
-            return jsonify(msg="数据库修改有错", code=402)
-    return ERROR(msg='该用户只能修改自己的信息')
+    try:
+        request_json = request.get_json()
+        userID = int(request_json['userID'])
+        gender = int(request_json['gender'])
+        city = request_json['city']
+        country = request_json['country']
+        province = request_json['province']
+        job = request_json['job']
+        nickname = request_json['nickname']
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_user_id = Token.get_token_value(token)[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+
+        user: User = User.select_user_by_id(userID)
+        user.gender = gender
+        user.city = city
+        user.country = country
+        user.province = province
+        user.job = job
+        user.nickname = nickname
+        User.add(user)
+        return jsonify(msg="update info, success", code=200)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
 
 
 # 改头像
 @user.route("/update/avatar/", methods=['POST'])
 def user_avatar_update():
-    """
-    fdsaf
-    """
-    new_avatar_url = request.json.get("avatar", "").strip()
-    id = request.json.get("id", "").strip()
-    sign = request.json.get("sign", "").strip()
-    auth_header = request.headers.get('Authorization')
-    re = Auth.identify(auth_header)
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == "0" or id == re['id']:
-        try:
-            user_num = User.query.filter_by(id=id).first().update({"avatar": new_avatar_url})
-            db.session.commit()
-            return jsonify(msg="修改用户头像成功", code=200, data={"id": user.id})
-        except Exception as e:
-            print(e)
-            return jsonify(msg="数据库操作有错", code=402)
-    return ERROR(msg="该用户只能修改自己的头像")
+    try:
+        userID = int(request.json.get("userID", '').strip())
+        avatar = request.json.get("userID", '').strip()
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_user_id = Token.get_token_value(token)[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+
+        user: User = User.select_user_by_id(userID)
+        user.avatar = avatar
+        User.add(user)
+        return jsonify(msg="update avatar, success", code=200)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
 
 
 # 修改密码
 @user.route("/update/pwd/", methods=['POST'])
 def user_pwd_update():
-    id = request.json.get("id", "").strip()
-    auth_header = request.headers.get('Authorization')
-    re = Auth.identify(auth_header)
-    if not isinstance(re, dict):
-        return re
-    if re['type'] == '0' or id == re['id']:
-        old_pwd = request.json.get('oldpwd', "").strip()
-        new_pwd = request.json.get('newpad', "").strip()
-        sign = request.args.get("sign", "").strip()
-        try:
-            user = User.query.filter_by(id=id).first()
-            if old_pwd == user.password:
-                user.password = new_pwd
-                db.session.add(user)
-                db.session.commit()
-                return jsonify(msg='成功', code=200, data={"id": user.id})
-            else:
-                return jsonify(msg='密码错误', code=403)
-        except Exception as e:
-            print(e)
-            return jsonify(msg='数据库操作有错', code=402)
-    return ERROR(msg='该用户只能修改自己的密码')
+    try:
+        userID = int(request.json.get("userID", '').strip())
+        old_pwd = request.json.get("oldpwd", '').strip()
+        new_pwd = request.json.get("newpwd", '').strip()
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_user_id = Token.get_token_value(token)[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+
+        user: User = User.select_user_by_id(userID)
+        if not User.check_password(user.password, old_pwd):
+            return jsonify(msg="old password error!", code=4000)
+        user.password = new_pwd
+        User.add(user)
+        return jsonify(msg="update password, success", code=200)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
 
 
 # 搜索接口
@@ -233,51 +161,6 @@ def user_search_news():
         print(e)
         return ERROR(msg="搜索失败")
 
-
-# 接入微信
-@user.route("/wechat/login", methods=['GET'])
-def user_wechat_api():
-    code = request.args.get("code", "").strip()
-    if code:
-        try:
-            token_url = "https://api.weixin.qq.com/sns/oauth2/access_token?" \
-                        "appid={:s}&" \
-                        "secret={:s}&" \
-                        "code={:s}&" \
-                        "grant_type={:s}".format(app_id, secret, code, "authorization_code")
-            res_data = json.loads(requests.get(token_url).text)
-            # 判断用户是否在另一个平台已经注册过了
-            # 已经授权过，则不再获取token等
-            if not WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
-                we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],
-                                            refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
-                db.session.add(we_user_token)
-                db.session.commit()
-                info_data = get_we_user_info(we_user_token)
-                we_user_info = WeUserInfo(**info_data)
-                db.session.add(we_user_info)
-                db.session.commit()
-                return jsonify(msg="创建授权新we_user", code=200, data={'unionid': res_data['unionid']})
-            else:
-                return jsonify(msg="we_user已经授权", code=200, data={'unionid': res_data['unionid']})
-        except Exception as e:
-            print(e)
-            return jsonify(mgs="数据库操作有错", code=4001)
-    else:
-        return jsonify(msg="未收到code", code=4000)
-
-
-@user.route("/wechat/userinfo", methods=['GET'])
-def get_we_user_info():
-    unionid = request.args.get('unionid', "").strip()
-    if unionid:
-        try:
-            pass
-        except Exception as e:
-            print(e)
-            return jsonify(mgs="数据库操作有错", code=4001)
-    else:
-        return jsonify(msg="未收到unionid", code=4000)
 
 # test just for
 @user.route("/wechat/test", methods=['GET'])
