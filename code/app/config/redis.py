@@ -28,8 +28,7 @@ class RedisDB:
         if isinstance(value, tuple):
             self.r.rpush(key, *value)
         else:
-            len = self.r.llen(key)
-            return self.r.lrange(key, 1, len)
+            return self.r.lrange(key, 0, -1)
 
 
 redis_db = RedisDB(REDIS_HOST, REDIS_PORT)
