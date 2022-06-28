@@ -6,6 +6,7 @@ from . import news
 from ..models import News, db, User2News, UserNewsRate, UserNewsClass, User
 from sqlalchemy.sql import func
 from ..tools.token import Token
+from .func import news_user_rec
 
 
 @news.route("/add", methods=['POST'])
@@ -42,33 +43,34 @@ def news_feed():
             return jsonify(msg="token invalid", code=4000)
         token_value = Token.get_token_value(token)
         token_user_id = token_value[0]
-        if userID != int(token_user_id):
-            return jsonify(msg="token is not valid for this operation", code=4000)
-        user = User.select_user_by_id(userID)
+        # 鉴别失败或者获取到category  则认为随机选取
+        if userID != int(token_user_id) or cate != "":
+            print("token not match userid, no user recommendation!")
+            news_list = News.query.filter_by(cate2=cate).sort_by(News.heat).limit(num).all()
+            return jsonify(msg="no user rec, success!", code=200, data={'news-list': news_list})
+        if cate == "" and userID == int(token_user_id):
+            news_list = news_user_rec(userID, num)
+            return jsonify(msg="user rec, success!", code=200, data={'news-list': news_list})
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
+
+
+@news.route("/content", methods=['GET'])
+def get_news_content():
+    try:
+        newsID = int(request.args.get("newsID", '').strip())
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        data = {}
+
 
     except Exception as e:
         print(e)
-        return jsonify(msg='kernel error', code=403)
-
-
-@news.route("/getNewsContent", methods=['GET'])
-def get_news_content():
-    news_id = request.args.get("newsID", "").strip()
-    sign = request.args.get("sign", "").strip()
-    if news_id and sign:
-        try:
-            news = News.select_news_by_id(news_id)
-        except Exception as e:
-            print(e)
-            return jsonify(msg='不存在该新闻', code=403)
-        return jsonify(msg='success', code=200, data={
-            'newsID': news.id, 'cate': news.cate,
-            'title': news.title, "heat": news.heat,
-            'time': news.date.strftime("%Y-%m-%d %H:%M:%S"), "source": news.source,
-            'content': news.content, 'viewNum': news.views, 'loveNum': news.loves,
-            'commentNum': news.comments, 'starNum': news.stars
-        })
-    return jsonify(msg='参数有错', code=403)
+        return jsonify(msg='kernel error', code=4000)
 
 
 # 基本刷新推荐
