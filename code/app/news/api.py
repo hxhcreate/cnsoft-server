@@ -3,8 +3,9 @@ import math
 from flask import request, jsonify, session
 
 from . import news
-from ..models import News, db, User2News, UserNewsRate, UserNewsClass
+from ..models import News, db, User2News, UserNewsRate, UserNewsClass, User
 from sqlalchemy.sql import func
+from ..tools.token import Token
 
 
 @news.route("/add", methods=['POST'])
@@ -30,21 +31,24 @@ def news_add():  # 需要客户端的请求字段跟Model匹配不然会出错
 
 @news.route("/feed", methods=['GET'])  # 获取用户新闻列表
 def news_feed():
-    cate = request.args.get("cate", "").strip()
-    sign = request.args.get("sign", "").strip()
-    nums = request.args.get('nums', "0").strip()
-    if cate != "" and 0 < int(nums) <= 10:
-        try:
-            news = News.query.filter_by(cate=cate).order_by(News.heat.desc()).limit(nums).all()
-            news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
-                          "digest": new.digest, "Hpic": new.hpic,
-                          "heat": new.heat, "tag": new.keywords} for new in news]
-            return jsonify(msg='获取新闻列表成功', code=200, data={"nums": nums, "news_list": news_list})
+    try:
+        userID = int(request.args.get("userID", '').strip())
+        token = request.cookies.get("cookies", "").strip()
+        cate = request.args.get("cate", "").strip()
+        num = request.args.get("num", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+        user = User.select_user_by_id(userID)
 
-        except Exception as e:
-            print(e)
-            return jsonify(msg='数据库查询有错', code=402)
-    return jsonify(msg='参数有错', code=403)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=403)
 
 
 @news.route("/getNewsContent", methods=['GET'])
