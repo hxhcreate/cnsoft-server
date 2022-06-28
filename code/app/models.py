@@ -18,12 +18,17 @@ def session_commit():
         print(e)
 
 
-# 建立三张表的记录
-def create_pure_user(username, password):
-    user = User(username=username, password=password)
+# 建立三张表的记录 User  UserLog  UserNewsClass
+def create_user(username="", password="", wechatid=""):
+    if username and wechatid:
+        raise Exception
+    user = User(username=username, password=password, wechatid=wechatid)
     userlog = UserLog(user_id=user.id)
     User.add(user)
     UserLog.add(userlog)
+    user_news_class = UserNewsClass(user_id=user.id)
+    db.session.add(user_news_class)
+    db.session.commit()
     return user
 
 
@@ -42,7 +47,7 @@ class User(db.Model):
     __tableName__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), default="")
-    password = db.Column(db.String(64))
+    password = db.Column(db.String(64), default="")
     nickname = db.Column(db.String(64), default="")
     avatar = db.Column(db.String(200), default='')  # 头像图片的url
     gender = db.Column(db.Integer, default=1)  # 只能为1 或者2
@@ -51,6 +56,7 @@ class User(db.Model):
     province = db.Column(db.String(64), default='')
     city = db.Column(db.String(64), default='')
     job = db.Column(db.String(64), default='')
+    interest = db.Column(db.String(255), default='')
     """其他登录方式"""
     phone = db.Column(db.String(11), default='')
     wechatid = db.Column(db.String(64), default='', index=True)  # 对应微信unionid
@@ -71,7 +77,7 @@ class User(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for k, v in kwargs.items():
-            self.k = v
+            self.k = v  # 别乱改
 
     def __dic__(self):
         pass
@@ -79,7 +85,7 @@ class User(db.Model):
     def get_specific_info(self, *keys):
         dic = {}
         for key in keys:
-            dic[key] = self.key
+            dic[key] = self.__dict__[key]
         return dic
 
     @staticmethod
@@ -247,8 +253,8 @@ class UserNewsClass(db.Model):
     social_security = db.Column(db.Integer, default=0)
     disaster = db.Column(db.Integer, default=0)
 
-    def getItem(self, name):
-        return self.name
+    def increase_item(self, name: str, num):
+        self.__dict__[name] += num
 
 
 # 用户浏览汇总
