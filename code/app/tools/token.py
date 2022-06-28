@@ -16,16 +16,15 @@ class Token:
         random_len = random.randint(10, 25)
         random_string = ''.join(random.sample(string.ascii_letters + string.digits, random_len))
         self.token = user_str_encrypt + random_string
-        self.token_value = (str(userID), username, wechatid)
-
+        self.token_value = ";".join([str(userID), username, wechatid])
 
     def deliver_token(self):
-        redis_db.handle_redis_list(self.token, self.token_value)
+        redis_db.handle_redis_token(self.token, self.token_value)
         return self.token
 
     @staticmethod
     def get_token_value(token):
-        return redis_db.handle_redis_list(token)
+        return redis_db.handle_redis_token(token).split(';')  # 返回一个列表
 
     @staticmethod
     def token_is_valid(token):

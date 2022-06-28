@@ -5,6 +5,7 @@ from ..tools.message import *
 # 用户管理api
 from .user_manage import *
 
+
 @user.route("/logout", methods=['GET'])
 def user_logout():
     try:
@@ -14,7 +15,8 @@ def user_logout():
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
             return jsonify(msg="token invalid", code=4000)
-        token_user_id = Token.get_token_value(token)[0]
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
         if userID != int(token_user_id):
             return jsonify(msg="token is not valid for this operation", code=4000)
 
@@ -38,7 +40,8 @@ def user_get_info():
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
             return jsonify(msg="token invalid", code=4000)
-        token_user_id = Token.get_token_value(token)[0]
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
         if userID != int(token_user_id):
             return jsonify(msg="token is not valid for this operation", code=4000)
 
@@ -72,7 +75,8 @@ def user_info_update():
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
             return jsonify(msg="token invalid", code=4000)
-        token_user_id = Token.get_token_value(token)[0]
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
         if userID != int(token_user_id):
             return jsonify(msg="token is not valid for this operation", code=4000)
 
@@ -101,7 +105,8 @@ def user_avatar_update():
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
             return jsonify(msg="token invalid", code=4000)
-        token_user_id = Token.get_token_value(token)[0]
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
         if userID != int(token_user_id):
             return jsonify(msg="token is not valid for this operation", code=4000)
 
@@ -126,7 +131,8 @@ def user_pwd_update():
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
             return jsonify(msg="token invalid", code=4000)
-        token_user_id = Token.get_token_value(token)[0]
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
         if userID != int(token_user_id):
             return jsonify(msg="token is not valid for this operation", code=4000)
 

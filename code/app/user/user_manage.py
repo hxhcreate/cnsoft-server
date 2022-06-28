@@ -26,7 +26,7 @@ def user_register():
         else:  # 携带token
             if not Token.token_is_valid(token):
                 return jsonify(msg='token invalid, failed!', code=400)
-            token_value = Token.get_token_value(token)
+            token_value = Token.get_token_value(token).split(";")
             token_userid, token_username, token_wechatid = token_value[0], \
                                                            token_value[1], \
                                                            token_value[2]
