@@ -35,6 +35,7 @@ def user_logout():
 def user_get_info():
     try:
         userID = int(request.args.get("userID", '').strip())
+        print(userID)
         token = request.cookies.get("cookies", "").strip()
         if not token:
             return jsonify(msg="token is needed", code=4000)
@@ -49,6 +50,7 @@ def user_get_info():
         data = user.get_specific_info("username", "nickname", "avatar",
                                       "gender", "city", "job", "age", "province",
                                       "country")
+
         resp = make_response(jsonify(msg="get user info, success", code=200, data=data))
         resp.set_cookie("cookies", token)
         resp.status = 200

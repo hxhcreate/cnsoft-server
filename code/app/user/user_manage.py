@@ -4,7 +4,7 @@ from . import user
 from .wechat import get_we_user_info
 from ..config import app_id, secret
 
-from ..models import User, db, WeUserToken, WeUserInfo
+from ..models import User, db, WeUserToken, WeUserInfo, create_user
 from ..tools.token import Token
 import json
 
@@ -17,16 +17,13 @@ def user_register():
         token = request.cookies.get("cookies", "").strip()
         if User.is_exist_user_by_username(username):
             return jsonify(msg='duplicate username, failed!', code=400)
-
         if token is "":  # 不携带token
-            user = User(username=username, password=password)
-            db.session.add(user)
-            db.session.commit()
+            create_user(username=username, password=password)
             return jsonify(msg='register new with pure, success!', code=200)
         else:  # 携带token
             if not Token.token_is_valid(token):
                 return jsonify(msg='token invalid, failed!', code=400)
-            token_value = Token.get_token_value(token).split(";")
+            token_value = Token.get_token_value(token)
             token_userid, token_username, token_wechatid = token_value[0], \
                                                            token_value[1], \
                                                            token_value[2]
@@ -90,8 +87,7 @@ def user_wechat_login():
             we_user_info = WeUserInfo(**info_data)
             db.session.add(we_user_info)
             db.session.commit()
-            user = User(wechatid=wechatid)
-            User.add(user)
+            user = create_user(wechatid=wechatid)
             resp = make_response(jsonify(msg='login with wechat!', code=200))
             new_token = Token(user.id, user.username, user.wechatid).deliver_token()
             resp.set_cookie("cookies", new_token)
