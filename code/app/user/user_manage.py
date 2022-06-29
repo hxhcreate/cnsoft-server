@@ -52,7 +52,11 @@ def user_login():
             return jsonify(msg='password error!', code=4000)
         token_delivered = Token(user.id, user.username, user.wechatid).deliver_token()
         print(token_delivered)
+<<<<<<< HEAD
         resp = make_response(jsonify(msg='login via pure, success!', code=200, data={'userID': user.id}))
+=======
+        resp = make_response(jsonify(msg='login via pure, success!', code=200))
+>>>>>>> 1c58585d8e797f2c933084a61bfa954cf5c344c4
         resp.set_cookie("cookies", token_delivered)
         resp.status = 200
         return resp

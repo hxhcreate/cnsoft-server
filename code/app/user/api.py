@@ -72,7 +72,9 @@ def user_info_update():
         province = request_json['province']
         job = request_json['job']
         nickname = request_json['nickname']
+        age = request_json['age']
         token = request.cookies.get("cookies", "").strip()
+        print("get token: %s" % token)
         if not token:
             return jsonify(msg="token is needed", code=4000)
         if not Token.token_is_valid(token):
@@ -89,6 +91,7 @@ def user_info_update():
         user.province = province
         user.job = job
         user.nickname = nickname
+        user.age = age
         User.add(user)
         return jsonify(msg="update info, success", code=200)
     except Exception as e:
@@ -101,7 +104,7 @@ def user_info_update():
 def user_avatar_update():
     try:
         userID = int(request.json.get("userID", '').strip())
-        avatar = request.json.get("userID", '').strip()
+        avatar = request.json.get("avatar", '').strip()
         token = request.cookies.get("cookies", "").strip()
         if not token:
             return jsonify(msg="token is needed", code=4000)
@@ -139,6 +142,7 @@ def user_pwd_update():
             return jsonify(msg="token is not valid for this operation", code=4000)
 
         user: User = User.select_user_by_id(userID)
+        print(user.password)
         if not User.check_password(user.password, old_pwd):
             return jsonify(msg="old password error!", code=4000)
         user.password = new_pwd
