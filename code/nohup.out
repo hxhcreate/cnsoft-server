@@ -1,0 +1,39 @@
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    app = create_app("product")  #线上环境
+  File "/root/my/cnsoft2022/server/code/app/__init__.py", line 32, in create_app
+    from . import admin, user, news, cloudAPI
+  File "/root/my/cnsoft2022/server/code/app/user/__init__.py", line 6, in <module>
+    from . import api
+  File "/root/my/cnsoft2022/server/code/app/user/api.py", line 6, in <module>
+    from .user_manage import *
+  File "/root/my/cnsoft2022/server/code/app/user/user_manage.py", line 55
+    <<<<<<< HEAD
+    ^
+IndentationError: unexpected unindent
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    app = create_app("product")  #线上环境
+  File "/root/my/cnsoft2022/server/code/app/__init__.py", line 32, in create_app
+    from . import admin, user, news, cloudAPI
+  File "/root/my/cnsoft2022/server/code/app/user/__init__.py", line 6, in <module>
+    from . import api
+  File "/root/my/cnsoft2022/server/code/app/user/api.py", line 6, in <module>
+    from .user_manage import *
+  File "/root/my/cnsoft2022/server/code/app/user/user_manage.py", line 55
+    <<<<<<< HEAD
+    ^
+IndentationError: unexpected unindent
+Traceback (most recent call last):
+  File "manage.py", line 5, in <module>
+    app = create_app("product")  #线上环境
+  File "/root/my/cnsoft2022/server/code/app/__init__.py", line 32, in create_app
+    from . import admin, user, news, cloudAPI
+  File "/root/my/cnsoft2022/server/code/app/user/__init__.py", line 6, in <module>
+    from . import api
+  File "/root/my/cnsoft2022/server/code/app/user/api.py", line 6, in <module>
+    from .user_manage import *
+  File "/root/my/cnsoft2022/server/code/app/user/user_manage.py", line 55
+    <<<<<<< HEAD
+    ^
+IndentationError: unexpected unindent
