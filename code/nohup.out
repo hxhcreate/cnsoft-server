@@ -37,3 +37,29 @@ Traceback (most recent call last):
     <<<<<<< HEAD
     ^
 IndentationError: unexpected unindent
+ * Serving Flask app 'app' (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+/root/my/cnsoft2022/server/code/app/user/user_manage.py:20: SyntaxWarning: "is" with a literal. Did you mean "=="?
+  if token is "":  # 不携带token
+ * Running on all addresses (0.0.0.0)
+   WARNING: This is a development server. Do not use it in a production deployment.
+ * Running on http://127.0.0.1:5001
+ * Running on http://192.168.0.206:5001 (Press CTRL+C to quit)
+223.104.44.3 - - [29/Jun/2022 17:26:31] "POST /user/login HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:26:33] "GET /user/get/info?userID=1 HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:26:35] "[32mPOST /user/update/avatar HTTP/1.1[0m" 308 -
+223.104.44.3 - - [29/Jun/2022 17:26:38] "[32mPOST /user/update/pwd HTTP/1.1[0m" 308 -
+223.104.44.3 - - [29/Jun/2022 17:26:41] "GET /news/feed?userID=1&cate=财经&num=3 HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:26:45] "GET /news/content?newsID=1 HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:26:52] "[33mGET /news/paragraph?newsID=1 HTTP/1.1[0m" 404 -
+223.104.44.3 - - [29/Jun/2022 17:26:54] "[31m[1mPOST /news/interest/setTag HTTP/1.1[0m" 405 -
+223.104.44.3 - - [29/Jun/2022 17:26:57] "[33mGET /news/interest/getTag?userID=1 HTTP/1.1[0m" 404 -
+223.104.44.3 - - [29/Jun/2022 17:27:01] "GET /news/interest/getTagList HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:27:05] "[33mGET /news/onclick?newsID=1&userID=1 HTTP/1.1[0m" 404 -
+223.104.44.3 - - [29/Jun/2022 17:27:08] "[33mGET /news/onlove?userID=1&newsID=1 HTTP/1.1[0m" 404 -
+223.104.44.3 - - [29/Jun/2022 17:27:10] "GET /news/onStar?userID=1&newsID=1 HTTP/1.1" 200 -
+223.104.44.3 - - [29/Jun/2022 17:27:13] "[33mGET /news/interest/dislike?userID=1&newsID=1&reason=too%20much; HTTP/1.1[0m" 404 -
+223.104.44.3 - - [29/Jun/2022 17:27:18] "GET /user/login/wechat?userID=-1&code=011ZgWFa1TyMrD0hsQFa1Gw9qb0ZgWF9 HTTP/1.1" 200 -
