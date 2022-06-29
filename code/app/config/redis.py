@@ -24,12 +24,5 @@ class RedisDB:
     def del_key(self, key):
         return self.r.delete(key)
 
-    def handle_redis_list(self, key, value=None):
-        if isinstance(value, tuple):
-            self.r.rpush(key, *value)
-        else:
-            len = self.r.llen(key)
-            return self.r.lrange(key, 1, len)
-
 
 redis_db = RedisDB(REDIS_HOST, REDIS_PORT)

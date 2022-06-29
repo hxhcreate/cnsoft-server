@@ -1,5 +1,5 @@
 from flask import jsonify
-from sqlalchemy import orm
+from sqlalchemy import orm, event
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import db
@@ -18,12 +18,18 @@ def session_commit():
         print(e)
 
 
-# 建立三张表的记录
-def create_user(username, password):
-    user = User(username=username, password=password)
+# 建立三张表的记录 User  UserLog  UserNewsClass
+def create_user(username="", password="", wechatid=""):
+    if username and wechatid:
+        raise Exception
+    user = User(username=username, password=password, wechatid=wechatid)
     userlog = UserLog(user_id=user.id)
     User.add(user)
     UserLog.add(userlog)
+    user_news_class = UserNewsClass(user_id=user.id)
+    db.session.add(user_news_class)
+    db.session.commit()
+    return user
 
 
 class Admin(db.Model):
@@ -40,19 +46,20 @@ class Admin(db.Model):
 class User(db.Model):
     __tableName__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(64), nullable=False, unique=True)
-    password = db.Column(db.String(64), nullable=False)
-    cate = db.Column(db.Enum("pure", "wechat", "phone"), default="pure")
-    type = db.Column(db.Enum("0", "1"), default='1')  # 0 代表的是管理员
+    username = db.Column(db.String(64), default="")
+    password = db.Column(db.String(64), default="")
     nickname = db.Column(db.String(64), default="")
     avatar = db.Column(db.String(200), default='')  # 头像图片的url
-    gender = db.Column(db.Enum("male", "female"), default='')
+    gender = db.Column(db.Integer, default=1)  # 只能为1 或者2
     age = db.Column(db.Integer, default=0)
+    country = db.Column(db.String(64), default='')
+    province = db.Column(db.String(64), default='')
     city = db.Column(db.String(64), default='')
     job = db.Column(db.String(64), default='')
+    interest = db.Column(db.String(255), default='')
     """其他登录方式"""
     phone = db.Column(db.String(11), default='')
-    wechat_id = db.Column(db.String(64), default='')
+    wechatid = db.Column(db.String(64), default='', index=True)  # 对应微信unionid
 
     """统计信息"""
     exp = db.Column(db.Integer, default=0)
@@ -70,10 +77,16 @@ class User(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         for k, v in kwargs.items():
-            self.k = v
+            self.k = v  # 别乱改
 
     def __dic__(self):
         pass
+
+    def get_specific_info(self, *keys):
+        dic = {}
+        for key in keys:
+            dic[key] = self.__dict__[key]
+        return dic
 
     @staticmethod
     def add(user):
@@ -104,21 +117,39 @@ class User(db.Model):
         return User.query.filter_by(username=username).first()
 
     @staticmethod
+    def select_user_by_wechat_id(wechatid):
+        return User.query.filter_by(wechatid=wechatid).first()
+
+    @staticmethod
     def is_exist_user_by_username(username):
-        old_users = User.query.filter_by(username=username).all()
-        if len(old_users) > 0:
+        user = User.query.filter_by(username=username).first()
+        if user is not None:
+            return True
+        return False
+
+    @staticmethod
+    def is_exist_user_by_wechat(wechatid):
+        user = User.query.filter_by(wechatid=wechatid).first()
+        if user is not None:
             return True
         return False
 
     @staticmethod
     def check_password(password, crypto):
-        if password == rsa_decrypt(crypto):
+        # if password == rsa_decrypt(crypto):
+        #     return True
+        # return False
+
+        if password == crypto:
             return True
         return False
 
     @staticmethod
     def decode_password(crypto):
         return rsa_decrypt(crypto)
+
+
+#     触发器
 
 
 class News(db.Model):
@@ -176,8 +207,9 @@ class News(db.Model):
     @staticmethod
     def select_news_by_id(id):
         news = News.query.filter_by(id=id).first()
-        if isinstance(news, [None]):
+        if news is None:
             raise Exception
+        return news
 
     def __getitem__(self, item):
         return self.item
@@ -222,8 +254,11 @@ class UserNewsClass(db.Model):
     social_security = db.Column(db.Integer, default=0)
     disaster = db.Column(db.Integer, default=0)
 
-    def getItem(self, name):
-        self.name
+    def increase_item(self, name: str, num):
+        self.__dict__[name] += num
+
+    def getItem(self, name: str):
+        return self.__dict__[name]
 
 
 # 用户浏览汇总
@@ -328,11 +363,11 @@ class WeUserInfo(db.Model):  # 微信用户个人信息
     id = db.Column(db.Integer, primary_key=True)
     openid = db.Column(db.String(255), nullable=False)
     nickname = db.Column(db.String(64), nullable=False)
-    sex = db.Column(db.Enum("1", "2"), default="")
+    sex = db.Column(db.Integer, default=1)
     province = db.Column(db.String(32), default="")
     city = db.Column(db.String(32), default="")
     country = db.Column(db.String(32), default="")
-    head_img_url = db.Column(db.String(512), default="")
+    headimgurl = db.Column(db.String(512), default="")
     privilege = db.Column(db.String(512), default="")
     unionid = db.Column(db.String(255), nullable=False, unique=True)
 

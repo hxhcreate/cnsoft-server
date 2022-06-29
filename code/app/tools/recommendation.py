@@ -15,5 +15,3 @@ def read_news_from_db():
         index += 1
     return news_df
 
-def read_user_rate_news():
-

@@ -5,7 +5,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from .config import config_map
 
-
 db = SQLAlchemy()
 
 
@@ -20,9 +19,11 @@ def create_app(config_name):
     db.init_app(app)  # 实例化数据库
 
     Session(app)  # 将app中的session数据全部读出来
+
     @app.route('/')
     def index():
         return send_from_directory("../dist", 'index.html')
+
     @app.route('/favicon.ico')
     def favicon():
         return send_from_directory("../dist", 'favicon.ico')
