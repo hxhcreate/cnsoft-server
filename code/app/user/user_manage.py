@@ -75,8 +75,15 @@ def user_wechat_login():
                     "grant_type={:s}".format(app_id, secret, code, "authorization_code")
         res_data = json.loads(requests.get(token_url).text)
         wechatid = res_data['unionid']
+
+        # 如果发现已经授权过，直接登录
         if WeUserToken.query.filter_by(unionid=res_data['unionid']).all():
-            return jsonify(msg="alreay granted via wechat", code=4000)
+            user: User = User.select_user_by_wechat_id(wechatid)
+            resp = make_response(jsonify(msg='wechat login!', code=200, data={'userID', user.id}))
+            new_token = Token(user.id, user.username, user.wechatid).deliver_token()
+            resp.set_cookie("cookies", new_token, max_age=SESSION_EXPIRE_TIME)
+            resp.status = 200
+            return resp
 
         if int(userID) == -1:  # new user
             we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],

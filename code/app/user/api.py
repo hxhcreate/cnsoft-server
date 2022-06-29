@@ -63,7 +63,7 @@ def user_get_info():
 
 
 # 基本信息修改
-@user.route("/update/info/", methods=['POST'])
+@user.route("/update/info", methods=['POST'])
 def user_info_update():
     try:
         request_json = request.get_json()
@@ -102,7 +102,7 @@ def user_info_update():
 
 
 # 改头像
-@user.route("/update/avatar/", methods=['POST'])
+@user.route("/update/avatar", methods=['POST'])
 def user_avatar_update():
     try:
         userID = int(request.json.get("userID", '').strip())
@@ -127,7 +127,7 @@ def user_avatar_update():
 
 
 # 修改密码
-@user.route("/update/pwd/", methods=['POST'])
+@user.route("/update/pwd", methods=['POST'])
 def user_pwd_update():
     try:
         userID = int(request.json.get("userID", '').strip())
