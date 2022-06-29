@@ -11,7 +11,6 @@ sys.path.append('..')
 from Signature import get_fullurl
 
 
-
 def get_news_list():
     try:
         response = json.loads(requests.get("https://www.toutiao.com/hot-event/hot-board/?origin=toutiao_pc").text).get(
@@ -117,12 +116,9 @@ def request_keyword(csv):
         else:
             print('\n', response.json())
 
-    print(csv)
     return csv
 
 
+# print(json.dumps(parse_news(get_news_list()), indent=2).encode().decode())
 if __name__ == "__main__":
-    # print(json.dumps(parse_news(get_news_list()), indent=2).encode().decode())
-    data = request_keyword(request_class(parse_news(get_news_list())))
-    print(data)
-
+    print(request_keyword(request_class(parse_news(get_news_list()))))

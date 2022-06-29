@@ -2,7 +2,9 @@ import time, os, sched
 
 schedule = sched.scheduler(time.time, time.sleep)
 
-python_cmd = ""
+python_cmd = "python data_manage/rep_news.py"
+
+
 def perform_command(cmd, inc):
     schedule.enter(inc, 0, perform_command, (cmd, inc))
     os.system(cmd)
