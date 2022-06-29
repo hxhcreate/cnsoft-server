@@ -46,7 +46,7 @@ def news_feed():
         # 鉴别失败或者获取到category  则认为随机选取
         if userID != int(token_user_id) or cate != "":
             print("token not match userid, no user recommendation!")
-            news = News.query.filter_by(cate2=cate).order_by(News.heat).limit(num).all()
+            news = News.query.filter_by(cate=cate).order_by(News.heat).limit(num).all()
             news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
                           "digest": new.digest, "hpic": new.hpic,
                           "heat": new.heat, "keywords": new.keywords} for new in news]
@@ -64,7 +64,7 @@ def get_news_content():
     try:
         newsID = int(request.args.get("newsID", '').strip())
         news: News = News.select_news_by_id(newsID)
-        data = {"newID": news.id, "cate": news.cate2, "title": news.title,
+        data = {"newID": news.id, "cate": news.cate, "title": news.title,
                 "heat": news.heat, "time": news.date, "source": news.source,
                 "content": news.content, "views": news.views, "loves": news.loves,
                 "stars": news.stars}
@@ -98,7 +98,7 @@ def news_rec_circle():
     user_news_class = UserNewsClass.query.filter_by(user_id=user_id).first()
     p_list = [calc_p(user_news_class.getItem(cate)) for cate in cate_list]
     cate = cate_list[cate_list.index(max(p_list))]
-    news = News.query.filter_by(cate2=cate).order_by(func.random()).limit(nums).all()
+    news = News.query.filter_by(cate=cate).order_by(func.random()).limit(nums).all()
     news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
                   "digest": new.digest, "Hpic": new.hpic,
                   "heat": new.heat, "tag": new.keywords} for new in news]
@@ -136,7 +136,7 @@ def news_click():
         user_log = User2News(start_time=datetime.datetime.now(), user_id=userID, news_id=newsID)
         # user_news_rate = UserNewsRate(user_id=userID, news_id=newsID)
         user_news_class: UserNewsClass = UserNewsClass.query.filter_by(user_id=userID).first()
-        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate2)],
+        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate)],
                                       num=1)
         db.session.add(user_news_class)
         db.session.add(news)
@@ -170,7 +170,7 @@ def news_love():
         user_log = User2News(start_time=datetime.datetime.now(), user_id=userID, news_id=newsID)
         # user_news_rate = UserNewsRate(user_id=userID, news_id=newsID)
         user_news_class: UserNewsClass = UserNewsClass.query.filter_by(user_id=userID).first()
-        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate2)],
+        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate)],
                                       num=1)
         db.session.add(user_news_class)
         db.session.add(news)
@@ -204,7 +204,7 @@ def news_star():
         user_log = User2News(start_time=datetime.datetime.now(), user_id=userID, news_id=newsID)
         # user_news_rate = UserNewsRate(user_id=userID, news_id=newsID)
         user_news_class: UserNewsClass = UserNewsClass.query.filter_by(user_id=userID).first()
-        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate2)],
+        user_news_class.increase_item(name=cate_list[cate_list_cn.index(news.cate)],
                                       num=1)
         db.session.add(user_news_class)
         db.session.add(news)
