@@ -18,7 +18,7 @@ def insertManyNews(file_path):
     for index, rows in data.iterrows():
         raw_content = re.sub(u"([\u000a\u3000\u000d\u0008\u0009])", "", rows["text"])
         keywords = ";".join(rows["keywords"].split(" ")) if rows["keywords"] != "" else ""
-        params = {"cate": rows["class_level0"], "cate2": rows["class_level1"], "title": rows["title"],
+        params = {"cate": rows["class_level1"], "title": rows["title"],
                   "content": rows["text"], "keywords": keywords,
                   "length": len(raw_content),
                   "digest": raw_content[:20] if len(raw_content) > 20 else raw_content[:10]}

@@ -8,8 +8,12 @@ import sys
 import pandas as pd
 
 sys.path.append('..')
-from Signature import get_fullurl
+from app.cloudAPI.Signature import get_fullurl
+from app import db  # 引入的是manage中已经实例化app的db
+from app import create_app
+from app.models import News
 
+app = create_app("develop")  # 生产环境
 
 
 def get_news_list():
@@ -124,5 +128,17 @@ def request_keyword(csv):
 if __name__ == "__main__":
     # print(json.dumps(parse_news(get_news_list()), indent=2).encode().decode())
     data = request_keyword(request_class(parse_news(get_news_list())))
-    print(data)
-
+    num = 0
+    for index, rows in data.iterrows():
+        raw_content = re.sub(u"([\u000a\u3000\u000d\u0008\u0009])", "", rows["text"])
+        keywords = ";".join(rows["keywords"].split(" ")) if rows["keywords"] != "" else ""
+        params = {"cate": rows["class_level1"], "title": rows["title"],
+                  "content": rows["text"], "keywords": keywords,
+                  "length": len(raw_content),
+                  "digest": raw_content[:20] if len(raw_content) > 20 else raw_content[:10]}
+        with app.app_context():
+            news = News(**params)
+            db.session.add(news)
+            db.session.commit()
+            num += 1
+    print(num)

@@ -28,7 +28,7 @@ def news_user_rec(user_id, nums):
     cate = cate_list[p_list.index(max(p_list))]
     cate = cate_list_cn[cate_list.index(cate)]
     print(cate)
-    news = News.query.filter_by(cate2=cate).order_by(func.random()).limit(nums).all()
+    news = News.query.filter_by(cate=cate).order_by(func.random()).limit(nums).all()
 
     news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
                   "digest": new.digest, "hpic": new.hpic,

@@ -158,7 +158,6 @@ class News(db.Model):
     title = db.Column(db.String(64), default="")
     digest = db.Column(db.Text, default="")
     cate = db.Column(db.String(16), nullable=False)
-    cate2 = db.Column(db.String(16), nullable=False)
     address = db.Column(db.String(64), default="")
     hpic = db.Column(db.String(255), default="")  # 头部图片Url
     heat = db.Column(db.Float, default=0)  # 新闻热度 浮点型
