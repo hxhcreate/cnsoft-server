@@ -46,7 +46,10 @@ def news_feed():
         # 鉴别失败或者获取到category  则认为随机选取
         if userID != int(token_user_id) or cate != "":
             print("token not match userid, no user recommendation!")
-            news_list = News.query.filter_by(cate2=cate).sort_by(News.heat).limit(num).all()
+            news = News.query.filter_by(cate2=cate).order_by(News.heat).limit(num).all()
+            news_list = [{"newsID": new.id, "cate": cate, "title": new.title,
+                          "digest": new.digest, "hpic": new.hpic,
+                          "heat": new.heat, "keywords": new.keywords} for new in news]
             return jsonify(msg="no user rec, success!", code=200, data={'news-list': news_list})
         if cate == "" and userID == int(token_user_id):
             news_list = news_user_rec(userID, num)
@@ -60,11 +63,6 @@ def news_feed():
 def get_news_content():
     try:
         newsID = int(request.args.get("newsID", '').strip())
-        token = request.cookies.get("cookies", "").strip()
-        if not token:
-            return jsonify(msg="token is needed", code=4000)
-        if not Token.token_is_valid(token):
-            return jsonify(msg="token invalid", code=4000)
         news: News = News.select_news_by_id(newsID)
         data = {"newID": news.id, "cate": news.cate2, "title": news.title,
                 "heat": news.heat, "time": news.date, "source": news.source,
@@ -78,7 +76,7 @@ def get_news_content():
 
 # 分类英文列表
 cate_list = ['fiance', 'health_care', 'education', 'tech', 'energy', 'transport',
-             'architecture', 'sports', 'military', ' manufacture', 'ecology',
+             'architecture', 'sports', 'military', 'manufacture', 'ecology',
              'travel', 'restaurant', 'agf', 'hot_issue', 'social', 'entertainment',
              'info', 'trans_security', 'social_security', 'disaster']
 

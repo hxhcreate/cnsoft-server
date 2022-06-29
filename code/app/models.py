@@ -207,8 +207,9 @@ class News(db.Model):
     @staticmethod
     def select_news_by_id(id):
         news = News.query.filter_by(id=id).first()
-        if isinstance(news, [None]):
+        if news is None:
             raise Exception
+        return news
 
     def __getitem__(self, item):
         return self.item
@@ -255,6 +256,9 @@ class UserNewsClass(db.Model):
 
     def increase_item(self, name: str, num):
         self.__dict__[name] += num
+
+    def getItem(self, name: str):
+        return self.__dict__[name]
 
 
 # 用户浏览汇总
