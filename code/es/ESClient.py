@@ -10,7 +10,7 @@ from app import db  # 引入的是manage中已经实例化app的db
 from app import create_app
 from app.models import News
 
-app = create_app("develop")
+app = create_app("product")
 
 
 class ESClient:
@@ -18,10 +18,10 @@ class ESClient:
         self.hosts = kwargs['hosts']
         self.index = kwargs['index']
         self.mapping = self.get_mapping()
-        self.es = Elasticsearch(hosts=self.hosts,
-                                sniff_on_start=True,  # 连接前测试
-                                sniff_timeout=60,
-                                sniff_on_connection_fail=True)  # 刷新节点
+        self.es = Elasticsearch(hosts=self.hosts)
+                                # sniff_on_start=True,   连接前测试
+                                # sniff_timeout=60,
+                                # sniff_on_connection_fail=True)  # 刷新节点
         self.build_index()
 
     # 从sql中获取数据
@@ -164,6 +164,6 @@ class ESClient:
 
 
 if __name__ == "__main__":
-    es = ESClient(hosts=[{'host': "127.0.0.1", "port": 9200}], index="2022soft")
-    # es.get_data_from_mysql()
-    es.search("姚明")
+    es = ESClient(hosts="https://localhost:9200", index="2022soft")
+    es.get_data_from_mysql()
+    # es.search("姚明")
