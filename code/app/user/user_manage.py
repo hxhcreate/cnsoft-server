@@ -2,7 +2,7 @@ import requests
 from flask import request, jsonify, session, make_response
 from . import user
 from .wechat import get_we_user_info
-from ..config import app_id, secret
+from ..config import app_id, secret, SESSION_EXPIRE_TIME
 
 from ..models import User, db, WeUserToken, WeUserInfo, create_user
 from ..tools.token import Token
@@ -53,7 +53,7 @@ def user_login():
         token_delivered = Token(user.id, user.username, user.wechatid).deliver_token()
         print(token_delivered)
         resp = make_response(jsonify(msg='login via pure, success!', code=200, data={'userID': user.id}))
-        resp.set_cookie("cookies", token_delivered)
+        resp.set_cookie("cookies", token_delivered, max_age=SESSION_EXPIRE_TIME)
         resp.status = 200
         return resp
     except Exception as e:
@@ -90,7 +90,7 @@ def user_wechat_login():
             user = create_user(wechatid=wechatid)
             resp = make_response(jsonify(msg='login with wechat!', code=200))
             new_token = Token(user.id, user.username, user.wechatid).deliver_token()
-            resp.set_cookie("cookies", new_token)
+            resp.set_cookie("cookies", new_token, max_age=SESSION_EXPIRE_TIME)
             resp.status = 200
             return resp
         else:
@@ -100,7 +100,7 @@ def user_wechat_login():
             User.add(user)
             resp = make_response(jsonify(msg='grant pure user with wechat!', code=200))
             new_token = Token(user.id, user.username, user.wechatid).deliver_token()
-            resp.set_cookie("cookies", new_token)
+            resp.set_cookie("cookies", new_token, max_age=SESSION_EXPIRE_TIME)
             resp.status = 200
             return resp
     except Exception as e:

@@ -5,6 +5,8 @@ from ..tools.message import *
 # 用户管理api
 from .user_manage import *
 
+from ..config import SESSION_EXPIRE_TIME
+
 
 @user.route("/logout", methods=['GET'])
 def user_logout():
@@ -22,7 +24,7 @@ def user_logout():
 
         Token.delete_token(token)
         resp = make_response(jsonify(msg="user logout, success!", code=200))
-        resp.set_cookie("cookies", "")
+        resp.set_cookie("cookies", "", max_age=SESSION_EXPIRE_TIME)
         resp.status = 200
         return resp
     except Exception as e:
@@ -52,7 +54,7 @@ def user_get_info():
                                       "country")
 
         resp = make_response(jsonify(msg="get user info, success", code=200, data=data))
-        resp.set_cookie("cookies", token)
+        resp.set_cookie("cookies", token, max_age=SESSION_EXPIRE_TIME)
         resp.status = 200
         return resp
     except Exception as e:
