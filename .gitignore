@@ -148,3 +148,6 @@ code/static/
 
 # js
 *.js
+
+*.out
+*.log
