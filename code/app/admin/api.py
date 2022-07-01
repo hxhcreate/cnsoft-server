@@ -10,7 +10,7 @@ from random import randrange
 
 from pyecharts import options as opts
 from pyecharts.charts import Bar
-from .gen_graph import bar_datazoom_slider, line_markpoint, pie_rosetype, grid_mutil_yaxis, liquid_data_precision, table_base
+from .gen_graph import gender_pie, age_bar, city_bar, news_click_rate, news_collection, user_numAndIncrease
 
 """管理员接口"""
 
@@ -19,20 +19,33 @@ from .gen_graph import bar_datazoom_slider, line_markpoint, pie_rosetype, grid_m
 def admin_index():
     return render_template("index.html")
     
-@admin.route("/bar")
-def get_bar():
-    c = bar_datazoom_slider().dump_options()
+@admin.route("/get_gender_pie")
+def get_gender_pie():
+    c = gender_pie().dump_options()
     return c
-@admin.route("/grid")
-def get_grid():
-    c = grid_mutil_yaxis().dump_options()
+@admin.route("/get_age_bar")
+def get_age_bar():
+    c = age_bar().dump_options()
     return c
-@admin.route("/pie")
-def get_pie():
-    c = pie_rosetype().dump_options()
+@admin.route("/get_city_bar")
+def get_city_bar():
+    c = city_bar().dump_options_with_quotes()
+    return c
+@admin.route("/get_news_click_rate")
+def get_news_click_rate():
+    c = news_click_rate().dump_options()
+    return c
+@admin.route("/get_news_collection")
+def get_news_collection():
+    c = news_collection().dump_options()
+    return c
+@admin.route("/get_user_numAndIncrease")
+def get_user_numAndIncrease():
+    c = user_numAndIncrease().dump_options()
     return c
 
 # 用新方案，没有登录系统的话，以下都没用
+'''
 @admin.route("/register", methods=['POST'])
 def admin_register():
     try:
@@ -105,3 +118,4 @@ def admin_code():
 def admin_static(path):
     return send_from_directory('../dist/static/' + '/'.join(path.split('/')[0:-1]), path.split('/')[-1])
 
+'''
