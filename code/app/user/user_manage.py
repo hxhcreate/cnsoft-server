@@ -89,7 +89,6 @@ def user_wechat_login():
             we_user_token = WeUserToken(openid=res_data['openid'], access_token=res_data['access_token'],
                                         refresh_token=res_data['refresh_token'], unionid=res_data['unionid'])
             db.session.add(we_user_token)
-            db.session.commit()
             info_data = get_we_user_info(we_user_token)
             we_user_info = WeUserInfo(**info_data)
             db.session.add(we_user_info)

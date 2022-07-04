@@ -23,3 +23,4 @@ python manage.py db downgrade 降级变更也就是撤回上一步的更新
 
 if __name__ == '__main__':
     manager.run()
+    # app.run(host="0.0.0.0", port=5001, debug=False, ssl_context=("cert/server.crt", "cert/server.key"))

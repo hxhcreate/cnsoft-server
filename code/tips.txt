@@ -1,2 +1,0 @@
-修改一处
-flask._compat  flask_script._compat
