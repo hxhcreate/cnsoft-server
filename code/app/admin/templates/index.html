@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Awesome-pyecharts</title>
+    <script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
+    <script type="text/javascript" src="https://assets.pyecharts.org/assets/maps/china.js"></script>
+    <script>
+        var baseUrl = 'http://127.0.0.1:5000/admin/';
+        function addGraph(url) {
+            function fetchData(event) {
+                $.ajax({
+                    type: "GET",
+                    url: baseUrl + url,
+                    dataType: 'json',
+                    success: function (result) {
+                        chart.setOption(result);
+                    }
+                });
+            }
+            var div = document.createElement('div')
+            var style = document.createAttribute("style");
+            style.value = "width:1000px; height:600px; display: block; margin:0 auto";
+            div.setAttributeNode(style);
+            document.getElementById("refresh").addEventListener("click", fetchData, false);
+            var chart = echarts.init(div, 'white', { renderer: 'canvas' });
+            // $(
+            //     function () {
+            //         fetchData(chart);
+            //         setInterval(fetchData, 2000);
+            //     }
+            // );
+            fetchData();
+
+            document.getElementsByTagName('body')[0].appendChild(div)
+        }
+    </script>
+
+</head>
+
+<body>
+    <button id="refresh" style="width:50px; height:30px; display: block; margin:0 auto">刷新</button>
+    <script>
+        addGraph('get_user_numAndIncrease')
+        addGraph('get_gender_pie')
+        addGraph('get_age_bar')
+        addGraph('get_city_bar')
+        addGraph('get_news_click_rate')
+        addGraph('get_news_collection')
+    </script>
+</body>
+
+</html>

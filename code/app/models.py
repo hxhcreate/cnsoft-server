@@ -1,5 +1,5 @@
 from flask import jsonify
-from sqlalchemy import orm, event
+from sqlalchemy import orm, event, CheckConstraint
 from sqlalchemy.exc import SQLAlchemyError
 
 from . import db
@@ -68,6 +68,8 @@ class User(db.Model):
     total_read_time = db.Column(db.BigInteger, default=0)  # 单位毫秒
     total_clicks = db.Column(db.BigInteger, default=0)
 
+    """喜好"""
+    taglist = db.Column(db.String(1048), default="")
     """外键关联"""
     user_news = db.relationship("User2News", backref="user")  # 关联到表User2News的
 
