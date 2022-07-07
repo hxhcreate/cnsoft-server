@@ -41,6 +41,7 @@ import redis
 
 # 基础环境
 class Config:
+    JSON_AS_ASCII = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = "secret"
     # flask-session配置

@@ -5,12 +5,15 @@ from pyecharts.components import Table
 from pyecharts.faker import Faker
 import random
 
+from ..models import db, User, News
+
+
 def bar_datazoom_slider() -> Bar:
     c = (
         Bar()
-        .add_xaxis(Faker.days_attrs)
-        .add_yaxis("商家A", Faker.days_values)
-        .set_global_opts(
+            .add_xaxis(Faker.days_attrs)
+            .add_yaxis("商家A", Faker.days_values)
+            .set_global_opts(
             title_opts=opts.TitleOpts(title="Bar-DataZoom（slider-水平）"),
             datazoom_opts=[opts.DataZoomOpts()],
         )
@@ -21,18 +24,18 @@ def bar_datazoom_slider() -> Bar:
 def line_markpoint() -> Line:
     c = (
         Line()
-        .add_xaxis(Faker.choose())
-        .add_yaxis(
+            .add_xaxis(Faker.choose())
+            .add_yaxis(
             "商家A",
             Faker.values(),
             markpoint_opts=opts.MarkPointOpts(data=[opts.MarkPointItem(type_="min")]),
         )
-        .add_yaxis(
+            .add_yaxis(
             "商家B",
             Faker.values(),
             markpoint_opts=opts.MarkPointOpts(data=[opts.MarkPointItem(type_="max")]),
         )
-        .set_global_opts(title_opts=opts.TitleOpts(title="Line-MarkPoint"))
+            .set_global_opts(title_opts=opts.TitleOpts(title="Line-MarkPoint"))
     )
     return c
 
@@ -41,7 +44,7 @@ def pie_rosetype() -> Pie:
     v = Faker.choose()
     c = (
         Pie()
-        .add(
+            .add(
             "",
             [list(z) for z in zip(v, Faker.values())],
             radius=["30%", "75%"],
@@ -49,14 +52,14 @@ def pie_rosetype() -> Pie:
             rosetype="radius",
             label_opts=opts.LabelOpts(is_show=False),
         )
-        .add(
+            .add(
             "",
             [list(z) for z in zip(v, Faker.values())],
             radius=["30%", "75%"],
             center=["75%", "50%"],
             rosetype="area",
         )
-        .set_global_opts(title_opts=opts.TitleOpts(title="Pie-玫瑰图示例"))
+            .set_global_opts(title_opts=opts.TitleOpts(title="Pie-玫瑰图示例"))
     )
     return c
 
@@ -65,20 +68,20 @@ def grid_mutil_yaxis() -> Grid:
     x_data = ["{}月".format(i) for i in range(1, 13)]
     bar = (
         Bar()
-        .add_xaxis(x_data)
-        .add_yaxis(
+            .add_xaxis(x_data)
+            .add_yaxis(
             "蒸发量",
             [2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3],
             yaxis_index=0,
             color="#d14a61",
         )
-        .add_yaxis(
+            .add_yaxis(
             "降水量",
             [2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3],
             yaxis_index=1,
             color="#5793f3",
         )
-        .extend_axis(
+            .extend_axis(
             yaxis=opts.AxisOpts(
                 name="蒸发量",
                 type_="value",
@@ -91,7 +94,7 @@ def grid_mutil_yaxis() -> Grid:
                 axislabel_opts=opts.LabelOpts(formatter="{value} ml"),
             )
         )
-        .extend_axis(
+            .extend_axis(
             yaxis=opts.AxisOpts(
                 type_="value",
                 name="温度",
@@ -107,7 +110,7 @@ def grid_mutil_yaxis() -> Grid:
                 ),
             )
         )
-        .set_global_opts(
+            .set_global_opts(
             yaxis_opts=opts.AxisOpts(
                 name="降水量",
                 min_=0,
@@ -126,8 +129,8 @@ def grid_mutil_yaxis() -> Grid:
 
     line = (
         Line()
-        .add_xaxis(x_data)
-        .add_yaxis(
+            .add_xaxis(x_data)
+            .add_yaxis(
             "平均温度",
             [2.0, 2.2, 3.3, 4.5, 6.3, 10.2, 20.3, 23.4, 23.0, 16.5, 12.0, 6.2],
             yaxis_index=2,
@@ -145,7 +148,7 @@ def grid_mutil_yaxis() -> Grid:
 def liquid_data_precision() -> Liquid:
     c = (
         Liquid()
-        .add(
+            .add(
             "lq",
             [0.3254],
             label_opts=opts.LabelOpts(
@@ -158,7 +161,7 @@ def liquid_data_precision() -> Liquid:
                 position="inside",
             ),
         )
-        .set_global_opts(title_opts=opts.TitleOpts(title="Liquid-数据精度"))
+            .set_global_opts(title_opts=opts.TitleOpts(title="Liquid-数据精度"))
     )
     return c
 
@@ -183,67 +186,72 @@ def table_base() -> Table:
 
 
 def gender_pie() -> Pie:
-    # 调数据库
-    male = 123
-    female = 456
+
+    male = len(User.query.filter_by(gender=1).all())
+    female = len(User.query.filter_by(gender=2).all())
     c = (
         Pie()
-        .add(
+            .add(
             "",
             [['male', male], ['female', female]]
         )
-        .set_global_opts(title_opts=opts.TitleOpts(title="男女比例"))
-        .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+            .set_global_opts(title_opts=opts.TitleOpts(title="男女比例"))
+            .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
     )
     return c
 
+
 def age_bar() -> Bar:
     # 调数据库
-    age = [i for i in range(50)]
+    age = [i for i in range(100)]
     num = [i for i in range(50)]
     c = (
         Bar()
-        .add_xaxis(age)
-        .add_yaxis("年龄分布", num)
-        .set_global_opts(
+            .add_xaxis(age)
+            .add_yaxis("年龄分布", num)
+            .set_global_opts(
             title_opts=opts.TitleOpts(title="年龄分布"),
             datazoom_opts=[opts.DataZoomOpts(), opts.DataZoomOpts(type_="inside")],
         )
     )
     return c
 
+
 def city_bar() -> Bar:
     # 调数据库
+    db.session.execute("select count(*) from user group by user.city having user.city != '' ")
     city = ['北京', '上海', '吉安']
     num = [i for i in range(3)]
     c = (
         Geo()
-        .add_schema(maptype="china")
-        .add("城市分布", [list(z) for z in zip(city, num)])
-        .set_global_opts(
+            .add_schema(maptype="china")
+            .add("城市分布", [list(z) for z in zip(city, num)])
+            .set_global_opts(
             visualmap_opts=opts.VisualMapOpts(is_piecewise=True),
             title_opts=opts.TitleOpts(title="城市分布"),
         )
-        .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
+            .set_series_opts(label_opts=opts.LabelOpts(formatter="{b}: {c}"))
     )
     return c
+
 
 def news_click_rate() -> Bar:
     # 调数据库
     news_class_name = ['class' + str(i) for i in range(20)]
-    click_rate = [i/100 for i in range(20)]
-    love_num = [i/100 for i in range(20)]
+    click_rate = [i / 100 for i in range(20)]
+    love_num = [i / 100 for i in range(20)]
     c = (
         Bar()
-        .add_xaxis(news_class_name)
-        .add_yaxis("新闻点击率", click_rate)
-        .add_yaxis("新闻喜好分布", love_num)
-        .set_global_opts(
+            .add_xaxis(news_class_name)
+            .add_yaxis("新闻点击率", click_rate)
+            .add_yaxis("新闻喜好分布", love_num)
+            .set_global_opts(
             title_opts=opts.TitleOpts(title="新闻喜好分布和点击率"),
             datazoom_opts=[opts.DataZoomOpts(), opts.DataZoomOpts(type_="inside")],
         )
     )
     return c
+
 
 def news_collection() -> Bar:
     # 调数据库
@@ -251,38 +259,38 @@ def news_collection() -> Bar:
     collection_num = [i for i in range(20)]
     c = (
         Bar()
-        .add_xaxis(news_class_name)
-        .add_yaxis("新闻收藏数", collection_num)
-        .set_global_opts(
+            .add_xaxis(news_class_name)
+            .add_yaxis("新闻收藏数", collection_num)
+            .set_global_opts(
             title_opts=opts.TitleOpts(title="新闻收藏数"),
             datazoom_opts=[opts.DataZoomOpts(), opts.DataZoomOpts(type_="inside")],
         )
     )
     return c
-    
-    
+
+
 def user_numAndIncrease() -> Grid:
     # 调数据库
-    user_num = [random.randint(i, i*10) for i in range(365)]
+    user_num = [random.randint(i, i * 10) for i in range(365)]
     user_online = [random.randint(0, 100) for i in range(365)]
-    user_increase = [user_num[i] - user_num[i-1] for i, _ in enumerate(user_num)]
+    user_increase = [user_num[i] - user_num[i - 1] for i, _ in enumerate(user_num)]
     x_data = ["{}月{}日".format(i, j) for i in range(1, 13) for j in range(1, 31)]
     bar = (
         Bar()
-        .add_xaxis(x_data)
-        .add_yaxis(
+            .add_xaxis(x_data)
+            .add_yaxis(
             "用户存量",
             user_num,
             yaxis_index=0,
             color="#d14a61",
         )
-        .add_yaxis(
+            .add_yaxis(
             "用户上线量",
             user_online,
             yaxis_index=1,
             color="#5793f3",
         )
-        .extend_axis(
+            .extend_axis(
             yaxis=opts.AxisOpts(
                 name="用户存量",
                 type_="value",
@@ -293,7 +301,7 @@ def user_numAndIncrease() -> Grid:
                 axislabel_opts=opts.LabelOpts(formatter="{value}"),
             )
         )
-        .extend_axis(
+            .extend_axis(
             yaxis=opts.AxisOpts(
                 type_="value",
                 name="用户上线量",
@@ -307,7 +315,7 @@ def user_numAndIncrease() -> Grid:
                 ),
             )
         )
-        .set_global_opts(
+            .set_global_opts(
             yaxis_opts=opts.AxisOpts(
                 name="每日用户增长量",
                 position="right",
@@ -325,8 +333,8 @@ def user_numAndIncrease() -> Grid:
 
     line = (
         Line()
-        .add_xaxis(x_data)
-        .add_yaxis(
+            .add_xaxis(x_data)
+            .add_yaxis(
             "每日用户增长量",
             user_increase,
             yaxis_index=2,

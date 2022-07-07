@@ -18,31 +18,43 @@ from .gen_graph import gender_pie, age_bar, city_bar, news_click_rate, news_coll
 @admin.route("/", methods=['GET'])
 def admin_index():
     return render_template("index.html")
-    
+
+
 @admin.route("/get_gender_pie")
 def get_gender_pie():
     c = gender_pie().dump_options()
     return c
+
+
 @admin.route("/get_age_bar")
 def get_age_bar():
     c = age_bar().dump_options()
     return c
+
+
 @admin.route("/get_city_bar")
 def get_city_bar():
     c = city_bar().dump_options_with_quotes()
     return c
+
+
 @admin.route("/get_news_click_rate")
 def get_news_click_rate():
     c = news_click_rate().dump_options()
     return c
+
+
 @admin.route("/get_news_collection")
 def get_news_collection():
     c = news_collection().dump_options()
     return c
+
+
 @admin.route("/get_user_numAndIncrease")
 def get_user_numAndIncrease():
     c = user_numAndIncrease().dump_options()
     return c
+
 
 # 用新方案，没有登录系统的话，以下都没用
 '''

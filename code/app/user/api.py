@@ -6,6 +6,7 @@ from ..tools.message import *
 from .user_manage import *
 
 from ..config import SESSION_EXPIRE_TIME
+from ..config.classfication import *
 
 
 @user.route("/logout", methods=['GET'])
@@ -174,6 +175,55 @@ def user_search_news():
     except Exception as e:
         print(e)
         return ERROR(msg="搜索失败")
+
+
+# 兴趣接口
+@user.route("/interest/getTagList", methods=['GET'])
+def user_get_system_tag_list():
+    return jsonify(msg='success', code=200, data={"num": 20, "tags": cate_list_cn})
+
+
+@user.route("/interest/setTag", methods=['GET'])
+def user_set_tags():
+    try:
+        userID = int(request.args.get("userID", '').strip())
+        nums = int(request.args.get('nums', "").strip())
+        tags = eval(request.args.get('tags', "").strip())  # 拿到list
+        print(tags)
+        print(type(tags))
+        token = request.cookies.get("cookies", "").strip()
+        if not token:
+            return jsonify(msg="token is needed", code=4000)
+        if not Token.token_is_valid(token):
+            return jsonify(msg="token invalid", code=4000)
+        token_value = Token.get_token_value(token)
+        token_user_id = token_value[0]
+        if userID != int(token_user_id):
+            return jsonify(msg="token is not valid for this operation", code=4000)
+        user: User = User.select_user_by_id(userID)
+        user.taglist = str(tags)
+        User.add(user)
+        return jsonify(msg="success", code=200)
+    except Exception as e:
+        print(e)
+        return jsonify(msg='kernel error', code=4000)
+
+
+@user.route("/interest/getTag", methods=['GET'])
+def user_get_tags():
+    userID = int(request.args.get("userID", '').strip())
+    token = request.cookies.get("cookies", "").strip()
+    if not token:
+        return jsonify(msg="token is needed", code=4000)
+    if not Token.token_is_valid(token):
+        return jsonify(msg="token invalid", code=4000)
+    token_value = Token.get_token_value(token)
+    token_user_id = token_value[0]
+    if userID != int(token_user_id):
+        return jsonify(msg="token is not valid for this operation", code=4000)
+    user: User = User.select_user_by_id(userID)
+    taglist = eval(user.taglist)
+    return jsonify(msg="success", code=200, data={'num': len(taglist), "tags": taglist})
 
 
 # test just for

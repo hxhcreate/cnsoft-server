@@ -10,4 +10,5 @@ requests~=2.27.1
 synonyms
 pyjwt~=2.3.0
 rsa~=4.8
+pyecharts~=1.9.1
 
