@@ -6,7 +6,7 @@ from pyecharts.faker import Faker
 import random
 
 from ..models import db, User, News
-
+from ..config.classfication import *
 
 def bar_datazoom_slider() -> Bar:
     c = (
@@ -187,8 +187,8 @@ def table_base() -> Table:
 
 def gender_pie() -> Pie:
 
-    male = len(User.query.filter_by(gender=1).all())
-    female = len(User.query.filter_by(gender=2).all())
+    male = User.query.filter_by(gender=1).count()
+    female = User.query.filter_by(gender=2).count()
     c = (
         Pie()
             .add(
@@ -203,8 +203,11 @@ def gender_pie() -> Pie:
 
 def age_bar() -> Bar:
     # 调数据库
-    age = [i for i in range(100)]
-    num = [i for i in range(50)]
+    num = []
+    age = range(10, 100)
+    for i in age:
+        num.append(User.filter_by(age=i).count())
+    age = [i for i in range(10, 100)]
     c = (
         Bar()
             .add_xaxis(age)
@@ -219,7 +222,6 @@ def age_bar() -> Bar:
 
 def city_bar() -> Bar:
     # 调数据库
-    db.session.execute("select count(*) from user group by user.city having user.city != '' ")
     city = ['北京', '上海', '吉安']
     num = [i for i in range(3)]
     c = (
@@ -237,12 +239,20 @@ def city_bar() -> Bar:
 
 def news_click_rate() -> Bar:
     # 调数据库
-    news_class_name = ['class' + str(i) for i in range(20)]
-    click_rate = [i / 100 for i in range(20)]
-    love_num = [i / 100 for i in range(20)]
+    click_rate = []
+    love_num = []
+    for cate in cate_list_cn:
+        nums_1 = 0
+        nums_2 = 0
+        for news in News.filter_by(cate=cate).all():
+            nums_1 += news.views
+            nums_2 += news.loves
+        click_rate.append(nums_1)
+        love_num.append(nums_2)
+
     c = (
         Bar()
-            .add_xaxis(news_class_name)
+            .add_xaxis(cate_list_cn)
             .add_yaxis("新闻点击率", click_rate)
             .add_yaxis("新闻喜好分布", love_num)
             .set_global_opts(
@@ -255,11 +265,16 @@ def news_click_rate() -> Bar:
 
 def news_collection() -> Bar:
     # 调数据库
-    news_class_name = ['class' + str(i) for i in range(20)]
-    collection_num = [i for i in range(20)]
+    collection_num = []
+    for cate in cate_list_cn:
+        nums=0
+        for news in News.filter_by(cate=cate).all():
+            nums += news.stars
+        collection_num.append(nums)
+
     c = (
         Bar()
-            .add_xaxis(news_class_name)
+            .add_xaxis(cate_list_cn)
             .add_yaxis("新闻收藏数", collection_num)
             .set_global_opts(
             title_opts=opts.TitleOpts(title="新闻收藏数"),
