@@ -2,7 +2,7 @@ import time
 from datetime import datetime
 import base64
 
-from flask import Flask, request, jsonify, session, url_for, render_template, send_from_directory
+from flask import Flask, request, jsonify, session, url_for, render_template, send_from_directory, Response
 
 from . import admin
 from ..models import Admin, db
@@ -19,7 +19,14 @@ from .gen_graph import gender_pie, age_bar, city_bar, news_click_rate, news_coll
 def admin_index():
     return render_template("index.html")
 
+@admin.route("/index.css", methods=['GET'])
+def admin_css():
+    return render_template("index.css")
 
+@admin.route("/icon/icon.png", methods=['GET'])
+def admin_icon():
+    return Response(open("app/admin/templates/ico/透明底（如有需要）PNG1024px,300dpi.png", 'rb').read(), mimetype="img/png")
+    
 @admin.route("/get_gender_pie")
 def get_gender_pie():
     c = gender_pie().dump_options()

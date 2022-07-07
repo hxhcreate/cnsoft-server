@@ -4,9 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Awesome-pyecharts</title>
+    <link rel="Shortcut Icon" href="./icon/icon.png" type="image/x-icon" />
     <script src="https://cdn.bootcss.com/jquery/3.0.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://assets.pyecharts.org/assets/echarts.min.js"></script>
     <script type="text/javascript" src="https://assets.pyecharts.org/assets/maps/china.js"></script>
+
     <script>
         var baseUrl = 'http://127.0.0.1:5000/admin/';
         function addGraph(url) {
@@ -24,7 +26,7 @@
             var style = document.createAttribute("style");
             style.value = "width:1000px; height:600px; display: block; margin:0 auto";
             div.setAttributeNode(style);
-            document.getElementById("refresh").addEventListener("click", fetchData, false);
+            // document.getElementById("refresh").addEventListener("click", fetchData, false);
             var chart = echarts.init(div, 'white', { renderer: 'canvas' });
             // $(
             //     function () {
@@ -34,21 +36,170 @@
             // );
             fetchData();
 
-            document.getElementsByTagName('body')[0].appendChild(div)
+            var graphs = document.getElementById('graphs');
+            var origin = graphs.lastChild;
+            graphs.replaceChild(div, origin)
+            // document.getElementById('graphs').appendChild(div)
         }
     </script>
 
+
+    <!-- <link rel="stylesheet" href="index.css"> -->
+    <style type="text/css">
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        section {
+            display: block;
+            position: relative;
+            height: 25%;
+            width: 50%;
+            /* float: left; */
+        }
+
+        ul {
+            list-style-type: none;
+            margin-top: 5%;
+            padding: 0px;
+            text-align: center;
+        }
+
+        a {
+            position: relative;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 1.5em;
+
+        }
+
+        .nav-5 {
+            /*background: rgba(59, 83, 99, 0.8);*/
+            background: rgba(86, 119, 140, 0.8);
+            height: 100%;
+            width: 10%;
+            float: left;
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-5 a {
+            overflow: hidden;
+        }
+
+        .nav-5 a>span {
+            display: block;
+            padding: 10px 20px;
+            background: #445c6c;
+            -webkit-transition: -webkit-transform 0.3s;
+            -moz-transition: -moz-transform 0.3s;
+            transition: transform 0.3s;
+        }
+
+        .nav-5 a[id="refresh"]>span {
+            display: block;
+            padding: 10px 20px;
+            background: #35a4ee;
+            -webkit-transition: -webkit-transform 0.3s;
+            -moz-transition: -moz-transform 0.3s;
+            transition: transform 0.3s;
+        }
+
+        .nav-5 a:before {
+            position: absolute;
+            top: 0;
+            left: -12px;
+            z-index: -1;
+            padding: 10px;
+            width: 100%;
+            height: 100%;
+            color: #445c6c;
+            content: attr(data-hover);
+            background: white;
+            -webkit-transform: translateX(-25%);
+            -moz-transform: translateX(-25%);
+            -ms-transform: translateX(-25%);
+            -o-transform: translateX(-25%);
+            transform: translateX(-25%);
+            -webkit-transition: all 0.2s;
+            -moz-transition: all 0.2s;
+            -ms-transition: all 0.2s;
+            -o-transition: all 0.2s;
+            transition: all 0.2s;
+        }
+
+        .nav-5 a[id="refresh"]:before {
+            position: absolute;
+            top: 0;
+            left: -12px;
+            z-index: -1;
+            padding: 10px;
+            width: 100%;
+            height: 100%;
+            color: #0b5383;
+            content: attr(data-hover);
+            background: rgb(49, 228, 198);
+            -webkit-transform: translateX(-25%);
+            -moz-transform: translateX(-25%);
+            -ms-transform: translateX(-25%);
+            -o-transform: translateX(-25%);
+            transform: translateX(-25%);
+            -webkit-transition: all 0.2s;
+            -moz-transition: all 0.2s;
+            -ms-transition: all 0.2s;
+            -o-transition: all 0.2s;
+            transition: all 0.2s;
+        }
+
+        .nav-5 a:hover::before {
+            -webkit-transform: translateX(0%);
+            -moz-transform: translateX(0%);
+            -ms-transform: translateX(0%);
+            -o-transform: translateX(0%);
+            transform: translateX(0%);
+        }
+
+        .nav-5 a:hover span {
+            -webkit-transform: translateX(100%);
+            -moz-transform: translateX(100%);
+            -ms-transform: translateX(100%);
+            -o-transform: translateX(100%);
+            transform: translateX(100%);
+        }
+
+    </style>
 </head>
 
 <body>
-    <button id="refresh" style="width:50px; height:30px; display: block; margin:0 auto">刷新</button>
+    <section class="nav-5" style="position:fixed">
+        <ul>
+            <li>
+                <img src="./icon/icon.png" style="width: 80%;">
+            </li>
+            <li>
+                <a href="" id="refresh" data-hover="刷新"><span>刷新</span></a>
+            </li>
+            <li><a></a></li>
+            <li><a href="#" onclick="addGraph('get_user_numAndIncrease')" data-hover="用户数量"><span>用户数量</span></a></li>
+            <li><a href="#" onclick="addGraph('get_gender_pie')" data-hover="男女比例"><span>男女比例</span></a></li>
+            <li><a href="#" onclick="addGraph('get_age_bar')" data-hover="年龄分布"><span>年龄分布</span></a></li>
+            <li><a href="#" onclick="addGraph('get_city_bar')" data-hover="城市分布"><span>城市分布</span></a></li>
+            <li><a href="#" onclick="addGraph('get_news_click_rate')"
+                    data-hover="新闻喜好分布和点击率"><span>新闻喜好分布和点击率</span></a></li>
+            <li><a href="#" onclick="addGraph('get_news_collection')" data-hover="新闻收藏数"><span>新闻收藏数</span></a></li>
+        </ul>
+    </section>
+    <div id="graphs">
+        <div style="height: 100px;">
+        </div>
+    </div>
     <script>
-        addGraph('get_user_numAndIncrease')
-        addGraph('get_gender_pie')
-        addGraph('get_age_bar')
-        addGraph('get_city_bar')
-        addGraph('get_news_click_rate')
-        addGraph('get_news_collection')
+        addGraph('get_user_numAndIncrease');
     </script>
 </body>
 
